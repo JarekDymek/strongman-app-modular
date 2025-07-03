@@ -4,7 +4,7 @@
 import { showNotification } from './ui.js';
 
 // --- POPRAWKA: Wklej tutaj swój klucz API od Google ---
-const API_KEY = "AIzaSyDiMY2H3YrsGggCfsA_ZUnhVU2gCCkds2k"; 
+const API_KEY = ""; 
 // ----------------------------------------------------
 
 export async function callGemini(prompt) {
