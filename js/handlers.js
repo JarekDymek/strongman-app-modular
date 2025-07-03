@@ -12,58 +12,6 @@ import * as Stopwatch from './stopwatch.js';
 import * as GeminiAPI from './api.js';
 import * as FocusMode from './focusMode.js';
 
-// ... (wszystkie inne funkcje handle... pozostają bez zmian) ...
-
-export async function handleGenerateEventName() {
-    // --- NOWA POPRAWKA: Sprawdzenie połączenia z internetem ---
-    if (!navigator.onLine) {
-        return UI.showNotification("Funkcje AI wymagają połączenia z internetem.", "error");
-    }
-    // --- KONIEC POPRAWKI ---
-
-    const location = document.getElementById('eventLocationInput').value.trim();
-    if (!location) return UI.showNotification("Wprowadź lokalizację.", "error");
-    const prompt = `Zaproponuj 5 chwytliwych, kreatywnych nazw dla zawodów strongman odbywających się w: "${location}". Podaj tylko nazwy, każdą w nowej linii.`;
-    const geminiModal = document.getElementById('geminiModal');
-    const loading = document.getElementById('geminiLoading');
-    const output = document.getElementById('geminiOutput');
-    geminiModal.classList.add('visible'); loading.style.display = 'block'; output.innerHTML = '';
-    const namesText = await GeminiAPI.callGemini(prompt);
-    loading.style.display = 'none';
-    if (namesText) {
-        namesText.split('\n').filter(n => n.trim()).forEach(name => {
-            const btn = document.createElement('button');
-            btn.textContent = name.replace(/\"/g, "").replace(/\*/g, "").trim();
-            btn.onclick = () => { document.getElementById('eventNameInput').value = btn.textContent; geminiModal.classList.remove('visible'); };
-            output.appendChild(btn);
-        });
-    }
-}
-
-export async function handleGenerateAnnouncement() {
-    // --- NOWA POPRAWKA: Sprawdzenie połączenia z internetem ---
-    if (!navigator.onLine) {
-        return UI.showNotification("Funkcje AI wymagają połączenia z internetem.", "error");
-    }
-    // --- KONIEC POPRAWKI ---
-
-    const competitors = State.getActiveCompetitors();
-    if (competitors.length === 0) return UI.showNotification("Rozpocznij zawody, aby wygenerować zapowiedź.", "error");
-    const prompt = `Jesteś spikerem na zawodach strongman. Stwórz krótką, ekscytującą zapowiedź nadchodzącej konkurencji: "${document.getElementById('eventTitle').textContent}". Wymień kilku startujących zawodników, np.: ${competitors.slice(0,3).join(', ')}. Użyj dynamicznego języka.`;
-    const geminiModal = document.getElementById('geminiModal');
-    const loading = document.getElementById('geminiLoading');
-    const output = document.getElementById('geminiOutput');
-    geminiModal.classList.add('visible'); loading.style.display = 'block'; output.innerHTML = '';
-    const announcement = await GeminiAPI.callGemini(prompt);
-    loading.style.display = 'none';
-    if (announcement) {
-        output.innerHTML = `<textarea readonly>${announcement}</textarea>`;
-    }
-}
-
-// ... (reszta funkcji handle... bez zmian) ...
-// Poniżej wklej pozostałe funkcje z Twojego pliku handlers.js
-
 export async function loadAndRenderInitialData() {
     const competitorsFromDb = await CompetitorDB.getCompetitors();
     State.setAllDbCompetitors(competitorsFromDb);
@@ -260,6 +208,47 @@ export function handleStopwatchSave(competitorName, result, eventType) {
     }
 }
 
+export async function handleGenerateEventName() {
+    if (!navigator.onLine) {
+        return UI.showNotification("Funkcje AI wymagają połączenia z internetem.", "error");
+    }
+    const location = document.getElementById('eventLocationInput').value.trim();
+    if (!location) return UI.showNotification("Wprowadź lokalizację.", "error");
+    const prompt = `Zaproponuj 5 chwytliwych, kreatywnych nazw dla zawodów strongman odbywających się w: "${location}". Podaj tylko nazwy, każdą w nowej linii.`;
+    const geminiModal = document.getElementById('geminiModal');
+    const loading = document.getElementById('geminiLoading');
+    const output = document.getElementById('geminiOutput');
+    geminiModal.classList.add('visible'); loading.style.display = 'block'; output.innerHTML = '';
+    const namesText = await GeminiAPI.callGemini(prompt);
+    loading.style.display = 'none';
+    if (namesText) {
+        namesText.split('\n').filter(n => n.trim()).forEach(name => {
+            const btn = document.createElement('button');
+            btn.textContent = name.replace(/\"/g, "").replace(/\*/g, "").trim();
+            btn.onclick = () => { document.getElementById('eventNameInput').value = btn.textContent; geminiModal.classList.remove('visible'); };
+            output.appendChild(btn);
+        });
+    }
+}
+
+export async function handleGenerateAnnouncement() {
+    if (!navigator.onLine) {
+        return UI.showNotification("Funkcje AI wymagają połączenia z internetem.", "error");
+    }
+    const competitors = State.getActiveCompetitors();
+    if (competitors.length === 0) return UI.showNotification("Rozpocznij zawody, aby wygenerować zapowiedź.", "error");
+    const prompt = `Jesteś spikerem na zawodach strongman. Stwórz krótką, ekscytującą zapowiedź nadchodzącej konkurencji: "${document.getElementById('eventTitle').textContent}". Wymień kilku startujących zawodników, np.: ${competitors.slice(0,3).join(', ')}. Użyj dynamicznego języka.`;
+    const geminiModal = document.getElementById('geminiModal');
+    const loading = document.getElementById('geminiLoading');
+    const output = document.getElementById('geminiOutput');
+    geminiModal.classList.add('visible'); loading.style.display = 'block'; output.innerHTML = '';
+    const announcement = await GeminiAPI.callGemini(prompt);
+    loading.style.display = 'none';
+    if (announcement) {
+        output.innerHTML = `<textarea readonly>${announcement}</textarea>`;
+    }
+}
+
 export async function handleManageCompetitors() {
     document.getElementById('competitorDbPanel').classList.add('visible');
     const competitors = await CompetitorDB.getCompetitors();
@@ -394,7 +383,8 @@ export async function handleExportWord() {
     const fileDownload = document.createElement("a");
     document.body.appendChild(fileDownload);
     fileDownload.href = source;
-    fileDownload.download = `${State.state.eventName || 'wyniki'}.doc`;
+    // --- POPRAWKA: Używamy rozszerzenia .docx, które pasuje do typu MIME ---
+    fileDownload.download = `${State.state.eventName || 'wyniki'}.docx`;
     fileDownload.click();
     document.body.removeChild(fileDownload);
 }
