@@ -11,10 +11,6 @@ import * as Stopwatch from './stopwatch.js';
 import * as FocusMode from './focusMode.js';
 import * as Handlers from './handlers.js';
 
-/**
- * Odświeża cały interfejs użytkownika na podstawie aktualnego stanu aplikacji.
- * Ta funkcja jest wywoływana po każdej znaczącej zmianie stanu (np. wczytanie danych, undo/redo).
- */
 function refreshFullUI() {
     const currentState = State.getState();
     State.setAllDbCompetitors(currentState.allDbCompetitors || []);
@@ -51,10 +47,6 @@ function refreshFullUI() {
     UI.DOMElements.eventLocationInput.value = currentState.eventLocation || '';
 }
 
-/**
- * Rejestruje wszystkie detektory zdarzeń (event listeners) dla elementów interfejsu.
- * Łączy akcje użytkownika z odpowiednimi funkcjami z modułu Handlers.
- */
 function setupEventListeners() {
     Stopwatch.setupStopwatchEventListeners();
     FocusMode.setupFocusModeEventListeners();
@@ -130,7 +122,7 @@ function setupEventListeners() {
         if (e.target.dataset.action === 'save-recalculate') Handlers.handleSaveAndRecalculate(parseInt(e.target.dataset.eventId), refreshFullUI);
     });
     document.getElementById('undoBtn').addEventListener('click', () => Handlers.handleUndo(refreshFullUI));
-    document.getElementById('redoBtn').addEventListener('click', () => Handlers.handleRedo(refreshFullUI));
+    document.getElementById('redoBtn').addEventListener('click', () => Handlers.handleRedo(refreshFullUICallback));
 
     // --- Databases & Modals ---
     document.getElementById('manageDbBtn').addEventListener('click', Handlers.handleManageCompetitors);
@@ -156,17 +148,18 @@ function setupEventListeners() {
 
     // --- Persistence & Export ---
     document.getElementById('exportPdfBtn').addEventListener('click', Handlers.handleExportPdf);
-    document.getElementById('exportWordBtn').addEventListener('click', Handlers.handleExportWord);
+    // === POPRAWKA: Zmieniono ID i funkcję obsługi ===
+    document.getElementById('exportHtmlBtn').addEventListener('click', Handlers.handleExportHtml);
     document.getElementById('resetCompetitionBtn').addEventListener('click', Persistence.resetApplication);
     document.getElementById('saveCheckpointBtn').addEventListener('click', Persistence.saveCheckpoint);
     document.getElementById('showCheckpointsBtn').addEventListener('click', () => Persistence.handleShowCheckpoints());
-    document.getElementById('checkpointList').addEventListener('click', (e) => Persistence.handleCheckpointListActions(e, refreshFullUI));
+    document.getElementById('checkpointList').addEventListener('click', (e) => Persistence.handleCheckpointListActions(e, refreshFullUICallback));
     document.getElementById('exportStateBtn_main').addEventListener('click', () => Persistence.exportStateToFile());
     document.getElementById('importStateBtn_main').addEventListener('click', () => document.getElementById('importFile_main').click());
-    document.getElementById('importFile_main').addEventListener('change', (e) => { Handlers.handleImportState(e.target.files[0], refreshFullUI); e.target.value = null; });
+    document.getElementById('importFile_main').addEventListener('change', (e) => { Handlers.handleImportState(e.target.files[0], refreshFullUICallback); e.target.value = null; });
     document.getElementById('exportStateBtn_intro').addEventListener('click', () => Persistence.exportStateToFile(true));
     document.getElementById('importStateBtn_intro').addEventListener('click', () => document.getElementById('importFile_intro').click());
-    document.getElementById('importFile_intro').addEventListener('change', (e) => { Handlers.handleImportState(e.target.files[0], refreshFullUI); e.target.value = null; });
+    document.getElementById('importFile_intro').addEventListener('change', (e) => { Handlers.handleImportState(e.target.files[0], refreshFullUICallback); e.target.value = null; });
 
     // --- Gemini AI ---
     document.getElementById('generateEventNameBtn').addEventListener('click', Handlers.handleGenerateEventName);
