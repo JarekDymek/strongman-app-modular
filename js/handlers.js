@@ -12,6 +12,86 @@ import * as Stopwatch from './stopwatch.js';
 import * as GeminiAPI from './api.js';
 import * as FocusMode from './focusMode.js';
 
+// ... (wszystkie inne funkcje handle... pozostają bez zmian) ...
+
+// --- NOWA, NIEZAWODNA WERSJA EKSPORTU DO HTML ---
+export function handleExportHtml() {
+    UI.showNotification("Generowanie pliku HTML...", "info");
+    if (!document.getElementById('finalSummaryPanel')) UI.renderFinalSummary();
+    const summaryPanel = document.getElementById('finalSummaryPanel');
+    if (!summaryPanel) return UI.showNotification("Najpierw wygeneruj podsumowanie.", "error");
+
+    const eventName = State.state.eventName || 'Zawody Strongman';
+    const location = State.state.eventLocation || '';
+    const date = new Date().toLocaleString('pl-PL');
+    const eventHistory = State.getEventHistory();
+
+    let htmlContent = `
+        <!DOCTYPE html>
+        <html lang="pl">
+        <head>
+            <meta charset="UTF-8">
+            <title>Wyniki: ${eventName}</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.4; margin: 20px; }
+                table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+                th { background-color: #f2f2f2; }
+                td:nth-child(2) { text-align: left; }
+                h1, h2, h3, h4 { text-align: center; }
+            </style>
+        </head>
+        <body>
+            <h1>${eventName}</h1>
+            <h2>${location}</h2>
+            <p style="text-align: center;">Data: ${date}</p>
+            <h3>Klasyfikacja Końcowa</h3>
+            ${summaryPanel.querySelector('table').outerHTML}
+            <h3>Szczegółowe Wyniki Konkurencji</h3>
+    `;
+
+    for (const event of eventHistory) {
+        const eventResults = event.results.sort((a,b) => (a.place || Infinity) - (b.place || Infinity));
+        htmlContent += `
+            <h4>${event.nr}. ${event.name} (${event.type === 'high' ? 'Więcej = lepiej' : 'Mniej = lepiej'})</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>M-ce</th>
+                        <th>Zawodnik</th>
+                        <th>Wynik</th>
+                        <th>Pkt.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${eventResults.map(res => `
+                        <tr>
+                            <td>${res.place ?? '-'}</td>
+                            <td>${res.name ?? '-'}</td>
+                            <td>${res.result ?? '-'}</td>
+                            <td>${res.points ?? '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    htmlContent += `</body></html>`;
+
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const fileDownload = document.createElement("a");
+    fileDownload.href = URL.createObjectURL(blob);
+    fileDownload.download = `wyniki_${(State.state.eventName || 'zawody').replace(/[\s\/]/g, '_')}.html`;
+    document.body.appendChild(fileDownload);
+    fileDownload.click();
+    document.body.removeChild(fileDownload);
+    UI.showNotification("Plik HTML został wygenerowany!", "success");
+}
+
+
+// --- POZOSTAŁE FUNKCJE BEZ ZMIAN ---
+
 export async function loadAndRenderInitialData() {
     const competitorsFromDb = await CompetitorDB.getCompetitors();
     State.setAllDbCompetitors(competitorsFromDb);
@@ -307,78 +387,6 @@ export async function handleCompetitorListAction(e) {
             await loadAndRenderInitialData();
         }
     }
-}
-
-// --- NOWA, NIEZAWODNA WERSJA EKSPORTU DO RTF ---
-export function handleExportWord() {
-    UI.showNotification("Generowanie pliku RTF...", "info");
-    if (!document.getElementById('finalSummaryPanel')) UI.renderFinalSummary();
-    const summaryPanel = document.getElementById('finalSummaryPanel');
-    if (!summaryPanel) return UI.showNotification("Najpierw wygeneruj podsumowanie.", "error");
-
-    const escapeRtf = (str) => (str || '').toString().replace(/\\/g, '\\\\').replace(/{/g, '\\{').replace(/}/g, '\\}');
-
-    const eventName = escapeRtf(document.getElementById('eventNameInput').value || 'Zawody Strongman');
-    const location = escapeRtf(document.getElementById('eventLocationInput').value);
-    const eventHistory = State.getEventHistory();
-
-    let rtfContent = `{\\rtf1\\ansi\\deff0
-{\\fonttbl{\\f0 Arial;}}
-\\pard\\qc\\b\\f0\\fs48 ${eventName}\\par
-\\pard\\qc\\b0\\fs32 ${location}\\par\\par
-\\pard\\qc\\b\\fs36 Klasyfikacja Ko\\u324?cowa\\par\\par
-`;
-
-    const summaryTable = summaryPanel.querySelector('table');
-    if (summaryTable) {
-        let tableRtf = `{\\trowd\\trgaph108\\trleft-108
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx2000
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx6000
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx9000
-\\pard\\intbl\\b M-ce\\b0\\cell\\b Zawodnik\\b0\\cell\\b Suma\\b0\\cell\\row}
-`;
-        summaryTable.querySelectorAll('tbody tr').forEach(row => {
-            const cells = Array.from(row.cells).map(cell => escapeRtf(cell.textContent.replace(/\(i\).*/, '').trim()));
-            tableRtf += `{\\trowd\\trgaph108\\trleft-108
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx2000
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx6000
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx9000
-\\pard\\intbl ${cells[0]}\\cell ${cells[1]}\\cell ${cells[2]}\\cell\\row}`;
-        });
-        rtfContent += tableRtf + '}';
-    }
-
-    rtfContent += `\\par\\pard\\qc\\b\\fs36 Szczeg\\u243?l?owe Wyniki Konkurencji\\par\\par`;
-
-    for (const event of eventHistory) {
-        rtfContent += `\\pard\\ql\\b\\fs28 ${escapeRtf(event.nr)}. ${escapeRtf(event.name)}\\b0\\par`;
-        let tableRtf = `{\\trowd\\trgaph108\\trleft-108
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx1500
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx5000
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx7000
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx9000
-\\pard\\intbl\\b M-ce\\b0\\cell\\b Zawodnik\\b0\\cell\\b Wynik\\b0\\cell\\b Pkt.\\b0\\cell\\row}`;
-        
-        event.results.sort((a,b) => (a.place || Infinity) - (b.place || Infinity)).forEach(res => {
-            tableRtf += `{\\trowd\\trgaph108\\trleft-108
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx1500
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx5000
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx7000
-\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx9000
-\\pard\\intbl ${escapeRtf(res.place)}\\cell ${escapeRtf(res.name)}\\cell ${escapeRtf(res.result)}\\cell ${escapeRtf(res.points)}\\cell\\row}`;
-        });
-        rtfContent += tableRtf + '}\\par';
-    }
-
-    rtfContent += '}';
-
-    const blob = new Blob([rtfContent], { type: 'application/rtf' });
-    const fileDownload = document.createElement("a");
-    fileDownload.href = URL.createObjectURL(blob);
-    fileDownload.download = `${State.state.eventName || 'wyniki'}.rtf`;
-    document.body.appendChild(fileDownload);
-    fileDownload.click();
-    document.body.removeChild(fileDownload);
 }
 
 export async function handleManageEvents() {
