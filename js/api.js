@@ -3,27 +3,32 @@
 
 import { showNotification } from './ui.js';
 
-const API_KEY = ""; // Klucz powinien być zarządzany bezpiecznie, np. przez zmienne środowiskowe
+// --- POPRAWKA: Wklej tutaj swój klucz API od Google ---
+const API_KEY = AIzaSyDiMY2H3YrsGggCfsA_ZUnhVU2gCCkds2k; 
+// ----------------------------------------------------
 
 export async function callGemini(prompt) {
-    // W Canvas, klucz API jest dostarczany automatycznie.
-    // Poniższy kod jest przygotowany na to środowisko.
-    if (['file:', 'content:'].includes(window.location.protocol) && !API_KEY) {
-        showNotification("Funkcje AI nie działają na plikach lokalnych bez klucza API.", "error"); 
+    if (!API_KEY || API_KEY === AIzaSyDiMY2H3YrsGggCfsA_ZUnhVU2gCCkds2k) {
+        showNotification("Klucz API Gemini nie został skonfigurowany.", "error"); 
         return null;
     }
+
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+    
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
+
         if (!response.ok) {
             const errorBody = await response.json();
-            throw new Error(errorBody.error?.message || response.statusText);
+            throw new Error(errorBody.error?.message || `Błąd HTTP: ${response.status}`);
         }
+
         const result = await response.json();
+
         if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
             return result.candidates[0].content.parts[0].text;
         } else {
