@@ -1,42 +1,30 @@
-// Plik: js/api.js
-// Cel: Moduł do komunikacji z API Gemini.
+// Plik: js/api.js (NOWA, BEZPIECZNA WERSJA)
+// Cel: Wysyła zapytanie do naszego własnego pośrednika, a nie bezpośrednio do Google.
 
 import { showNotification } from './ui.js';
 
-// --- POPRAWKA: Wklej tutaj swój klucz API od Google ---
-const API_KEY = ""; 
-// ----------------------------------------------------
+// Klucz API NIE jest już tutaj przechowywany.
+// Funkcja wywołuje nasz własny, bezpieczny punkt końcowy na serwerze Netlify.
+const PROXY_URL = "/.netlify/functions/gemini-proxy"; 
 
 export async function callGemini(prompt) {
-    if (!API_KEY || API_KEY === "TUTAJ_WKLEJ_SWÓJ_KLUCZ_API") {
-        showNotification("Klucz API Gemini nie został skonfigurowany.", "error"); 
-        return null;
-    }
-
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
-    
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(PROXY_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            body: JSON.stringify({ prompt: prompt }) // Wysyłamy tylko prompt
         });
 
         if (!response.ok) {
-            const errorBody = await response.json();
-            throw new Error(errorBody.error?.message || `Błąd HTTP: ${response.status}`);
+            const errorResult = await response.json();
+            throw new Error(errorResult.error || `Błąd serwera pośredniczącego: ${response.status}`);
         }
 
         const result = await response.json();
+        return result.text;
 
-        if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-            return result.candidates[0].content.parts[0].text;
-        } else {
-            console.warn("Otrzymano nieoczekiwaną odpowiedź z API:", result);
-            throw new Error("Otrzymano pustą lub nieprawidłową odpowiedź z API.");
-        }
     } catch (error) {
-        console.error("Błąd API Gemini:", error);
+        console.error("Błąd wywołania pośrednika Gemini:", error);
         showNotification(`Błąd komunikacji z AI: ${error.message}`, "error");
         return null;
     }
