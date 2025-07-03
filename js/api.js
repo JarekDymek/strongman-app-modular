@@ -4,11 +4,11 @@
 import { showNotification } from './ui.js';
 
 // --- POPRAWKA: Wklej tutaj swój klucz API od Google ---
-const API_KEY = AIzaSyDiMY2H3YrsGggCfsA_ZUnhVU2gCCkds2k; 
+const API_KEY = "AIzaSyDiMY2H3YrsGggCfsA_ZUnhVU2gCCkds2k"; 
 // ----------------------------------------------------
 
 export async function callGemini(prompt) {
-    if (!API_KEY || API_KEY === AIzaSyDiMY2H3YrsGggCfsA_ZUnhVU2gCCkds2k) {
+    if (!API_KEY || API_KEY === "TUTAJ_WKLEJ_SWÓJ_KLUCZ_API") {
         showNotification("Klucz API Gemini nie został skonfigurowany.", "error"); 
         return null;
     }
