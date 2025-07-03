@@ -309,82 +309,74 @@ export async function handleCompetitorListAction(e) {
     }
 }
 
-export async function handleExportWord() {
-    UI.showNotification("Generowanie pliku Word...", "info");
+// --- NOWA, NIEZAWODNA WERSJA EKSPORTU DO RTF ---
+export function handleExportWord() {
+    UI.showNotification("Generowanie pliku RTF...", "info");
     if (!document.getElementById('finalSummaryPanel')) UI.renderFinalSummary();
     const summaryPanel = document.getElementById('finalSummaryPanel');
     if (!summaryPanel) return UI.showNotification("Najpierw wygeneruj podsumowanie.", "error");
 
-    const logoSrc = State.getLogo();
-    let logoHtml = '';
-    if (logoSrc) {
-        logoHtml = `<p style="text-align:center;"><img src="${logoSrc}" style="width:100%; max-width:600px; height:auto;"></p>`;
-    }
+    const escapeRtf = (str) => (str || '').toString().replace(/\\/g, '\\\\').replace(/{/g, '\\{').replace(/}/g, '\\}');
 
-    const eventName = document.getElementById('eventNameInput').value || 'Zawody Strongman';
-    const location = document.getElementById('eventLocationInput').value;
+    const eventName = escapeRtf(document.getElementById('eventNameInput').value || 'Zawody Strongman');
+    const location = escapeRtf(document.getElementById('eventLocationInput').value);
     const eventHistory = State.getEventHistory();
 
-    let eventsHtml = '';
-    for (const event of eventHistory) {
-        eventsHtml += `<h3>Konkurencja ${event.nr}: ${event.name}</h3>
-        <table width="100%" style="border-collapse: collapse; margin-bottom: 20px;">
-            <thead>
-                <tr>
-                    <th style="border: 1px solid #999; padding: 8px; background-color: #f2f2f2;">Miejsce</th>
-                    <th style="border: 1px solid #999; padding: 8px; background-color: #f2f2f2; text-align: left;">Zawodnik</th>
-                    <th style="border: 1px solid #999; padding: 8px; background-color: #f2f2f2;">Wynik</th>
-                    <th style="border: 1px solid #999; padding: 8px; background-color: #f2f2f2;">Pkt.</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${event.results.sort((a,b) => a.place - b.place).map(res => `
-                    <tr>
-                        <td style="border: 1px solid #999; padding: 8px; text-align: center;">${res.place}</td>
-                        <td style="border: 1px solid #999; padding: 8px;">${res.name}</td>
-                        <td style="border: 1px solid #999; padding: 8px; text-align: center;">${res.result}</td>
-                        <td style="border: 1px solid #999; padding: 8px; text-align: center;">${res.points}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>`;
-    }
-    
-    const summaryClone = summaryPanel.cloneNode(true);
-    summaryClone.querySelectorAll('img').forEach(img => img.remove());
-    summaryClone.querySelectorAll('table').forEach(table => {
-        table.setAttribute('width', '100%');
-        table.style.borderCollapse = 'collapse';
-        table.style.marginBottom = '20px';
-        table.querySelectorAll('th, td').forEach(cell => {
-            cell.style.border = '1px solid #999';
-            cell.style.padding = '8px';
+    let rtfContent = `{\\rtf1\\ansi\\deff0
+{\\fonttbl{\\f0 Arial;}}
+\\pard\\qc\\b\\f0\\fs48 ${eventName}\\par
+\\pard\\qc\\b0\\fs32 ${location}\\par\\par
+\\pard\\qc\\b\\fs36 Klasyfikacja Ko\\u324?cowa\\par\\par
+`;
+
+    const summaryTable = summaryPanel.querySelector('table');
+    if (summaryTable) {
+        let tableRtf = `{\\trowd\\trgaph108\\trleft-108
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx2000
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx6000
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx9000
+\\pard\\intbl\\b M-ce\\b0\\cell\\b Zawodnik\\b0\\cell\\b Suma\\b0\\cell\\row}
+`;
+        summaryTable.querySelectorAll('tbody tr').forEach(row => {
+            const cells = Array.from(row.cells).map(cell => escapeRtf(cell.textContent.replace(/\(i\).*/, '').trim()));
+            tableRtf += `{\\trowd\\trgaph108\\trleft-108
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx2000
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx6000
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx9000
+\\pard\\intbl ${cells[0]}\\cell ${cells[1]}\\cell ${cells[2]}\\cell\\row}`;
         });
-        table.querySelectorAll('th').forEach(th => th.style.backgroundColor = '#f2f2f2');
-    });
+        rtfContent += tableRtf + '}';
+    }
 
+    rtfContent += `\\par\\pard\\qc\\b\\fs36 Szczeg\\u243?l?owe Wyniki Konkurencji\\par\\par`;
 
-    let sourceHTML = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'><title>Wyniki</title></head>
-        <body>
-            ${logoHtml}
-            <div style="text-align:center;">
-                <h1>${eventName}</h1>
-                <p>${location}</p>
-            </div>
-            ${summaryClone.innerHTML}
-            <br pagebreak="true" />
-            ${eventsHtml}
-        </body>
-        </html>`;
+    for (const event of eventHistory) {
+        rtfContent += `\\pard\\ql\\b\\fs28 ${escapeRtf(event.nr)}. ${escapeRtf(event.name)}\\b0\\par`;
+        let tableRtf = `{\\trowd\\trgaph108\\trleft-108
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx1500
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx5000
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx7000
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx9000
+\\pard\\intbl\\b M-ce\\b0\\cell\\b Zawodnik\\b0\\cell\\b Wynik\\b0\\cell\\b Pkt.\\b0\\cell\\row}`;
+        
+        event.results.sort((a,b) => (a.place || Infinity) - (b.place || Infinity)).forEach(res => {
+            tableRtf += `{\\trowd\\trgaph108\\trleft-108
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx1500
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx5000
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx7000
+\\clbrdrb\\brdrs\\clbrdrl\\brdrs\\clbrdrr\\brdrs\\clbrdrt\\brdrs\\cellx9000
+\\pard\\intbl ${escapeRtf(res.place)}\\cell ${escapeRtf(res.name)}\\cell ${escapeRtf(res.result)}\\cell ${escapeRtf(res.points)}\\cell\\row}`;
+        });
+        rtfContent += tableRtf + '}\\par';
+    }
 
-    const source = 'data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=utf-8,' + encodeURIComponent(sourceHTML);
+    rtfContent += '}';
+
+    const blob = new Blob([rtfContent], { type: 'application/rtf' });
     const fileDownload = document.createElement("a");
+    fileDownload.href = URL.createObjectURL(blob);
+    fileDownload.download = `${State.state.eventName || 'wyniki'}.rtf`;
     document.body.appendChild(fileDownload);
-    fileDownload.href = source;
-    // --- POPRAWKA: Używamy rozszerzenia .docx, które pasuje do typu MIME ---
-    fileDownload.download = `${State.state.eventName || 'wyniki'}.docx`;
     fileDownload.click();
     document.body.removeChild(fileDownload);
 }
