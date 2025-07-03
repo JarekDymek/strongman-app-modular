@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Strongman NextGen PWA</title>
+  <title>Strongman NextGen Modular</title>
   
   <!-- Zależności zewnętrzne -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -13,9 +13,8 @@
   <!-- Link do zewnętrznego arkusza stylów -->
   <link rel="stylesheet" href="css/main.css">
   
-  <!-- === NOWY ELEMENT: Link do manifestu PWA === -->
+  <!-- Link do manifestu PWA -->
   <link rel="manifest" href="manifest.json">
-  <!-- === KONIEC NOWEGO ELEMENTU === -->
 
 </head>
 <body>
@@ -283,7 +282,8 @@
     </div>
     <div id="export-button-group" style="grid-template-columns: repeat(3, 1fr);">
       <button id="exportPdfBtn">Eksportuj do PDF</button>
-      <button id="exportWordBtn">Eksportuj do Word</button>
+      <!-- === POPRAWKA: Zmieniono tekst i ID przycisku === -->
+      <button id="exportHtmlBtn">Eksportuj do HTML</button>
       <button id="resetCompetitionBtn" style="background:var(--error-color)">Resetuj</button>
     </div>
     <div class="panel security-panel">
@@ -305,13 +305,13 @@
     </div>
   </main>
   
-  <!-- Ukryty kontener do generowania PDF -->
+  <!-- Ukryty kontener do generowania PDF/Obrazu -->
   <div id="pdf-export-container" style="position: absolute; left: -9999px; width: 800px; background: white; padding: 20px; color: black;"></div>
 
   <!-- Główny skrypt aplikacji -->
   <script type="module" src="js/main.js"></script>
 
-  <!-- === NOWY ELEMENT: Skrypt rejestrujący Service Worker === -->
+  <!-- Skrypt rejestrujący Service Worker dla PWA -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -323,7 +323,6 @@
       });
     }
   </script>
-  <!-- === KONIEC NOWEGO ELEMENTU === -->
 
 </body>
 </html>
