@@ -25,6 +25,7 @@ export function handleExportHtml() {
     const location = State.state.eventLocation || '';
     const date = new Date().toLocaleString('pl-PL');
     const eventHistory = State.getEventHistory();
+    const logoSrc = State.getLogo();
 
     let htmlContent = `
         <!DOCTYPE html>
@@ -33,21 +34,32 @@ export function handleExportHtml() {
             <meta charset="UTF-8">
             <title>Wyniki: ${eventName}</title>
             <style>
-                body { font-family: Arial, sans-serif; line-height: 1.4; margin: 20px; }
-                table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                body { font-family: Arial, sans-serif; line-height: 1.4; margin: 20px; color: #333; }
+                .container { max-width: 800px; margin: auto; }
+                .header { text-align: center; margin-bottom: 30px; }
+                .logo { max-height: 100px; margin-bottom: 15px; }
+                table { border-collapse: collapse; width: 100%; margin-bottom: 25px; font-size: 10pt; }
                 th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-                th { background-color: #f2f2f2; }
+                th { background-color: #f2f2f2; font-weight: bold; }
                 td:nth-child(2) { text-align: left; }
                 h1, h2, h3, h4 { text-align: center; }
+                h1 { font-size: 24pt; margin: 0; }
+                h2 { font-size: 18pt; margin: 5px 0; font-weight: normal; }
+                h3 { font-size: 16pt; border-bottom: 2px solid #333; padding-bottom: 5px; margin-top: 40px; }
+                h4 { font-size: 14pt; text-align: left; margin-top: 25px; margin-bottom: 10px; }
             </style>
         </head>
         <body>
-            <h1>${eventName}</h1>
-            <h2>${location}</h2>
-            <p style="text-align: center;">Data: ${date}</p>
-            <h3>Klasyfikacja Końcowa</h3>
-            ${summaryPanel.querySelector('table').outerHTML}
-            <h3>Szczegółowe Wyniki Konkurencji</h3>
+            <div class="container">
+                <div class="header">
+                    ${logoSrc ? `<img src="${logoSrc}" class="logo">` : ''}
+                    <h1>${eventName}</h1>
+                    <h2>${location}</h2>
+                    <p>Data wygenerowania: ${date}</p>
+                </div>
+                <h3>Klasyfikacja Końcowa</h3>
+                ${summaryPanel.querySelector('table').outerHTML}
+                <h3>Szczegółowe Wyniki Konkurencji</h3>
     `;
 
     for (const event of eventHistory) {
@@ -77,7 +89,7 @@ export function handleExportHtml() {
         `;
     }
 
-    htmlContent += `</body></html>`;
+    htmlContent += `</div></body></html>`;
 
     const blob = new Blob([htmlContent], { type: 'text/html' });
     const fileDownload = document.createElement("a");
