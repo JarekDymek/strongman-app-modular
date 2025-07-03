@@ -119,9 +119,9 @@ function setupEventListeners() {
     document.getElementById('historyPanel').addEventListener('click', (e) => {
         const eventId = e.target.dataset.eventId;
         if (eventId) UI.renderEventForEditing(parseInt(eventId));
-        if (e.target.dataset.action === 'save-recalculate') Handlers.handleSaveAndRecalculate(parseInt(e.target.dataset.eventId), refreshFullUI);
+        if (e.target.dataset.action === 'save-recalculate') Handlers.handleSaveAndRecalculate(parseInt(e.target.dataset.eventId), refreshFullUICallback);
     });
-    document.getElementById('undoBtn').addEventListener('click', () => Handlers.handleUndo(refreshFullUI));
+    document.getElementById('undoBtn').addEventListener('click', () => Handlers.handleUndo(refreshFullUICallback));
     document.getElementById('redoBtn').addEventListener('click', () => Handlers.handleRedo(refreshFullUICallback));
 
     // --- Databases & Modals ---
@@ -148,7 +148,7 @@ function setupEventListeners() {
 
     // --- Persistence & Export ---
     document.getElementById('exportPdfBtn').addEventListener('click', Handlers.handleExportPdf);
-    // === POPRAWKA: Zmieniono ID i funkcję obsługi ===
+    // === POPRAWKA: Podłączenie nowego przycisku do nowej funkcji ===
     document.getElementById('exportHtmlBtn').addEventListener('click', Handlers.handleExportHtml);
     document.getElementById('resetCompetitionBtn').addEventListener('click', Persistence.resetApplication);
     document.getElementById('saveCheckpointBtn').addEventListener('click', Persistence.saveCheckpoint);
