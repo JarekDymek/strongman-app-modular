@@ -101,7 +101,6 @@ export function handleExportHtml() {
     UI.showNotification("Plik HTML został wygenerowany!", "success");
 }
 
-
 // --- POZOSTAŁE FUNKCJE BEZ ZMIAN ---
 
 export async function loadAndRenderInitialData() {
@@ -184,23 +183,24 @@ export async function handleEventsDbFileImport(file) {
 }
 
 export async function handleImportState(file, refreshFullUICallback) {
-    if (!file) return;
-    const success = await Persistence.importStateFromFile(file);
-    if (success) { refreshFullUICallback(); }
+    if (!file) return false;
+    return await Persistence.importStateFromFile(file);
 }
 
 export function handleStartCompetition(refreshFullUICallback) {
     const selectedInputs = document.querySelectorAll('#competitorSelectionList input:checked');
     const selectedCompetitors = Array.from(selectedInputs).map(input => input.value);
-    if (selectedCompetitors.length < 2) return UI.showNotification("Wybierz co najmniej dwóch zawodników.", "error");
+    if (selectedCompetitors.length < 2) {
+        UI.showNotification("Wybierz co najmniej dwóch zawodników.", "error");
+        return false;
+    }
     
     History.saveToUndoHistory(State.getState());
     State.startCompetition(selectedCompetitors);
-    UI.switchView('main');
-    UI.renderTable();
     History.saveToUndoHistory(State.getState());
     Persistence.triggerAutoSave();
     Persistence.exportStateToFile(true);
+    return true; // Sygnał do odświeżenia UI
 }
 
 export function handleEventTypeChange(type) {
@@ -215,7 +215,10 @@ export function handleCalculatePoints() {
     const resultInputs = document.querySelectorAll('#resultsTable .resultInput');
     const currentResults = Array.from(resultInputs).map(input => ({ name: input.dataset.name, result: input.value }));
     const { results, error } = Competition.calculateEventPoints(currentResults, State.getActiveCompetitors().length, State.getEventType());
-    if (error) return UI.showNotification("Proszę wpisać prawidłowe wartości liczbowe lub użyć formatu MM:SS.ss dla czasu.", "error");
+    if (error) {
+        UI.showNotification("Proszę wpisać prawidłowe wartości liczbowe lub użyć formatu MM:SS.ss dla czasu.", "error");
+        return false;
+    }
     
     const eventName = document.getElementById('eventTitle').textContent;
     State.addEventToHistory({ nr: State.getEventNumber(), name: eventName, type: State.getEventType(), results: results });
@@ -225,66 +228,67 @@ export function handleCalculatePoints() {
     History.saveToUndoHistory(State.getState());
     Persistence.triggerAutoSave();
     Persistence.exportStateToFile();
+    return true;
 }
 
 export async function handleNextEvent() {
     const inputs = document.querySelectorAll('#resultsTable .resultInput:not([readonly])');
     if (inputs.length > 0 && !await UI.showConfirmation("Nie przyznano punktów dla bieżącej konkurencji. Czy na pewno chcesz kontynuować?")) {
-        return;
+        return false;
     }
     History.saveToUndoHistory(State.getState());
     State.nextEvent();
-    UI.updateEventTitle(State.getEventNumber(), State.state.eventTitle);
-    UI.renderTable();
     History.saveToUndoHistory(State.getState());
     Persistence.triggerAutoSave();
+    return true;
 }
 
 export function handleShuffle() {
     History.saveToUndoHistory(State.getState());
     State.shuffleCompetitors();
-    UI.renderTable();
     Persistence.triggerAutoSave();
+    return true;
 }
 
 export async function handleFinalEvent() {
     const success = await Competition.setupFinalEvent(Competition.breakTie);
     if (success) {
-        UI.updateEventTitle(null, State.state.eventTitle);
-        UI.renderTable();
         History.saveToUndoHistory(State.getState());
         Persistence.triggerAutoSave();
     }
+    return success;
 }
 
-export function handleUndo(refreshFullUICallback) {
+export function handleUndo() {
     const previousState = History.undo(State.getState());
     if (previousState) { 
         State.restoreState(previousState); 
-        refreshFullUICallback(); 
         Persistence.triggerAutoSave(); 
+        return true;
     }
+    return false;
 }
 
-export function handleRedo(refreshFullUICallback) {
+export function handleRedo() {
     const nextState = History.redo(State.getState());
     if (nextState) { 
         State.restoreState(nextState); 
-        refreshFullUICallback(); 
         Persistence.triggerAutoSave(); 
+        return true;
     }
+    return false;
 }
 
-export function handleSaveAndRecalculate(eventId, refreshFullUICallback) {
+export function handleSaveAndRecalculate(eventId) {
     History.saveToUndoHistory(State.getState());
     const editedInputs = document.querySelectorAll(`#editTable_${eventId} .editable-result`);
     const newResults = Array.from(editedInputs).map(input => ({ name: input.dataset.name, result: input.value }));
     State.updateEventResults(eventId, newResults);
     State.recalculateAllPoints(Competition.calculateEventPoints);
-    refreshFullUICallback();
     UI.showNotification("Wyniki zostały przeliczone!", "success");
     History.saveToUndoHistory(State.getState());
     Persistence.triggerAutoSave();
+    return true;
 }
 
 export function handleStopwatchSave(competitorName, result, eventType) {
