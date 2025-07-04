@@ -252,7 +252,6 @@ input.resultInput:read-only { background-color: #f3f4f6; cursor: not-allowed; op
 }
 .tie-info:hover .tooltip, .tie-info:focus .tooltip { visibility: visible; opacity: 1; }
 
-/* === NOWA ANIMACJA DLA POTWIERDZENIA ZAPISU === */
 @keyframes highlight-flash-input-anim {
   0% { background-color: transparent; }
   50% { background-color: rgba(40, 167, 69, 0.25); }
@@ -524,6 +523,27 @@ body.dark #gemini-output textarea {
   .actions-grid { grid-template-columns: 1fr 1fr; }
   #export-button-group { grid-template-columns: 1fr 1fr; }
   #export-button-group > button:last-of-type { grid-column: 1 / -1; }
+  
+  /* === NOWE STYLE: Pełnoekranowy modal AI na mobile === */
+  #geminiModal .modal-box {
+      width: 100vw;
+      height: 100vh;
+      max-width: 100vw;
+      max-height: 100vh;
+      border-radius: 0;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+  }
+  #geminiModal #geminiOutput {
+      flex-grow: 1;
+      display: flex;
+  }
+  #geminiModal #geminiOutput textarea {
+      flex-grow: 1;
+      font-size: 1.2rem; /* Większa czcionka dla czytelności */
+      resize: none;
+  }
 }
 
 @media (max-width: 600px) {
