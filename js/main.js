@@ -10,6 +10,7 @@ import * as EventsDB from './eventsDb.js';
 import * as Stopwatch from './stopwatch.js';
 import * as FocusMode from './focusMode.js';
 import * as Handlers from './handlers.js';
+import * as CheckpointsDB from './checkpointsDb.js'; // <-- NOWY IMPORT
 
 function refreshFullUI() {
     const currentState = State.getState();
@@ -119,10 +120,10 @@ function setupEventListeners() {
     document.getElementById('historyPanel').addEventListener('click', (e) => {
         const eventId = e.target.dataset.eventId;
         if (eventId) UI.renderEventForEditing(parseInt(eventId));
-        if (e.target.dataset.action === 'save-recalculate') Handlers.handleSaveAndRecalculate(parseInt(e.target.dataset.eventId), refreshFullUICallback);
+        if (e.target.dataset.action === 'save-recalculate') Handlers.handleSaveAndRecalculate(parseInt(e.target.dataset.eventId), refreshFullUI);
     });
-    document.getElementById('undoBtn').addEventListener('click', () => Handlers.handleUndo(refreshFullUICallback));
-    document.getElementById('redoBtn').addEventListener('click', () => Handlers.handleRedo(refreshFullUICallback));
+    document.getElementById('undoBtn').addEventListener('click', () => Handlers.handleUndo(refreshFullUI));
+    document.getElementById('redoBtn').addEventListener('click', () => Handlers.handleRedo(refreshFullUI));
 
     // --- Databases & Modals ---
     document.getElementById('manageDbBtn').addEventListener('click', Handlers.handleManageCompetitors);
@@ -147,16 +148,15 @@ function setupEventListeners() {
     document.getElementById('competitorDetailCloseBtn').addEventListener('click', () => document.getElementById('competitorDetailModal').classList.remove('visible'));
 
     // --- Persistence & Export ---
-    document.getElementById('exportPdfBtn').addEventListener('click', Handlers.handleExportPdf);
-    // === POPRAWKA: Podłączenie nowego przycisku do nowej funkcji ===
+    document.getElementById('exportPdfBtn').addEventListener('click', Persistence.exportToPdf);
     document.getElementById('exportHtmlBtn').addEventListener('click', Handlers.handleExportHtml);
     document.getElementById('resetCompetitionBtn').addEventListener('click', Persistence.resetApplication);
     document.getElementById('saveCheckpointBtn').addEventListener('click', Persistence.saveCheckpoint);
     document.getElementById('showCheckpointsBtn').addEventListener('click', () => Persistence.handleShowCheckpoints());
-    document.getElementById('checkpointList').addEventListener('click', (e) => Persistence.handleCheckpointListActions(e, refreshFullUICallback));
+    document.getElementById('checkpointList').addEventListener('click', (e) => Persistence.handleCheckpointListActions(e, refreshFullUI));
     document.getElementById('exportStateBtn_main').addEventListener('click', () => Persistence.exportStateToFile());
     document.getElementById('importStateBtn_main').addEventListener('click', () => document.getElementById('importFile_main').click());
-    document.getElementById('importFile_main').addEventListener('change', (e) => { Handlers.handleImportState(e.target.files[0], refreshFullUICallback); e.target.value = null; });
+    document.getElementById('importFile_main').addEventListener('change', (e) => { Handlers.handleImportState(e.target.files[0], refreshFullUI); e.target.value = null; });
     document.getElementById('exportStateBtn_intro').addEventListener('click', () => Persistence.exportStateToFile(true));
     document.getElementById('importStateBtn_intro').addEventListener('click', () => document.getElementById('importFile_intro').click());
     document.getElementById('importFile_intro').addEventListener('change', (e) => { Handlers.handleImportState(e.target.files[0], refreshFullUICallback); e.target.value = null; });
@@ -177,6 +177,8 @@ async function initializeApp() {
         
         await CompetitorDB.initDB();
         await EventsDB.initEventsDB();
+        await CheckpointsDB.initCheckpointsDB(); // <-- NOWA LINIA
+        
         await CompetitorDB.seedCompetitorsDatabaseIfNeeded();
         await EventsDB.seedEventsDatabaseIfNeeded();
         
