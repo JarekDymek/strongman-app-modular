@@ -12,120 +12,6 @@ import * as Stopwatch from './stopwatch.js';
 import * as GeminiAPI from './api.js';
 import * as FocusMode from './focusMode.js';
 
-// ... (wszystkie inne funkcje handle... pozostają bez zmian) ...
-
-// --- NOWA, NIEZAWODNA WERSJA EKSPORTU DO HTML Z EDYCJĄ ---
-export function handleExportHtml() {
-    UI.showNotification("Przygotowywanie raportu do edycji...", "info");
-    if (!document.getElementById('finalSummaryPanel')) UI.renderFinalSummary();
-    const summaryPanel = document.getElementById('finalSummaryPanel');
-    if (!summaryPanel) return UI.showNotification("Najpierw wygeneruj podsumowanie.", "error");
-
-    const eventName = State.state.eventName || 'Zawody Strongman';
-    const location = State.state.eventLocation || '';
-    const date = new Date().toLocaleString('pl-PL');
-    const eventHistory = State.getEventHistory();
-    const logoSrc = State.getLogo();
-
-    // Funkcja do zamiany polskich znaków
-    const normalizeText = (str) => {
-        if (typeof str !== 'string') return str;
-        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                  .replace(/ł/g, "l").replace(/Ł/g, "L");
-    };
-
-    let htmlContent = `
-        <div class="header">
-            ${logoSrc ? `<img src="${logoSrc}" class="logo" style="max-height: 100px; margin-bottom: 15px;">` : ''}
-            <h1>${normalizeText(eventName)}</h1>
-            <h2>${normalizeText(location)}</h2>
-            <p>Data wygenerowania: ${date}</p>
-        </div>
-        <h3>Klasyfikacja Końcowa</h3>
-        ${summaryPanel.querySelector('table').outerHTML}
-        <h3>Szczegółowe Wyniki Konkurencji</h3>
-    `;
-
-    for (const event of eventHistory) {
-        const eventResults = event.results.sort((a,b) => (a.place || Infinity) - (b.place || Infinity));
-        htmlContent += `
-            <h4>${normalizeText(event.nr)}. ${normalizeText(event.name)} (${event.type === 'high' ? 'Więcej = lepiej' : 'Mniej = lepiej'})</h4>
-            <table>
-                <thead>
-                    <tr>
-                        <th>M-ce</th>
-                        <th>Zawodnik</th>
-                        <th>Wynik</th>
-                        <th>Pkt.</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${eventResults.map(res => `
-                        <tr>
-                            <td>${res.place ?? '-'}</td>
-                            <td>${normalizeText(res.name)}</td>
-                            <td>${res.result ?? '-'}</td>
-                            <td>${res.points ?? '-'}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-    }
-    
-    // Pokaż modal do edycji
-    const modal = document.getElementById('editExportModal');
-    const editableContent = document.getElementById('editable-content');
-    editableContent.innerHTML = htmlContent;
-    modal.classList.add('visible');
-
-    // Obsługa przycisków modala
-    document.getElementById('saveAndDownloadBtn').onclick = () => {
-        const finalHtml = `
-            <!DOCTYPE html>
-            <html lang="pl">
-            <head>
-                <meta charset="UTF-8">
-                <title>Wyniki: ${eventName}</title>
-                <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.4; margin: 20px; color: #333; }
-                    .container { max-width: 800px; margin: auto; }
-                    .header { text-align: center; margin-bottom: 30px; }
-                    .logo { max-height: 100px; margin-bottom: 15px; }
-                    table { border-collapse: collapse; width: 100%; margin-bottom: 25px; font-size: 10pt; }
-                    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-                    th { background-color: #f2f2f2; font-weight: bold; }
-                    td:nth-child(2) { text-align: left; }
-                    h1, h2, h3, h4 { text-align: center; }
-                    h1 { font-size: 24pt; margin: 0; }
-                    h2 { font-size: 18pt; margin: 5px 0; font-weight: normal; }
-                    h3 { font-size: 16pt; border-bottom: 2px solid #333; padding-bottom: 5px; margin-top: 40px; }
-                    h4 { font-size: 14pt; text-align: left; margin-top: 25px; margin-bottom: 10px; }
-                </style>
-            </head>
-            <body><div class="container">${editableContent.innerHTML}</div></body></html>
-        `;
-
-        const blob = new Blob([finalHtml], { type: 'text/html' });
-        const fileDownload = document.createElement("a");
-        fileDownload.href = URL.createObjectURL(blob);
-        fileDownload.download = `wyniki_${(State.state.eventName || 'zawody').replace(/[\s\/]/g, '_')}.html`;
-        document.body.appendChild(fileDownload);
-        fileDownload.click();
-        document.body.removeChild(fileDownload);
-        
-        modal.classList.remove('visible');
-        UI.showNotification("Plik HTML został wygenerowany!", "success");
-    };
-
-    document.getElementById('cancelExportBtn').onclick = () => {
-        modal.classList.remove('visible');
-    };
-}
-
-
-// --- POZOSTAŁE FUNKCJE BEZ ZMIAN ---
-
 export async function loadAndRenderInitialData() {
     const competitorsFromDb = await CompetitorDB.getCompetitors();
     State.setAllDbCompetitors(competitorsFromDb);
@@ -207,10 +93,14 @@ export async function handleEventsDbFileImport(file) {
 
 export async function handleImportState(file, refreshFullUICallback) {
     if (!file) return false;
-    return await Persistence.importStateFromFile(file);
+    const success = await Persistence.importStateFromFile(file);
+    if (success) {
+        refreshFullUICallback();
+    }
+    return success;
 }
 
-export function handleStartCompetition(refreshFullUICallback) {
+export function handleStartCompetition() {
     const selectedInputs = document.querySelectorAll('#competitorSelectionList input:checked');
     const selectedCompetitors = Array.from(selectedInputs).map(input => input.value);
     if (selectedCompetitors.length < 2) {
@@ -223,7 +113,7 @@ export function handleStartCompetition(refreshFullUICallback) {
     History.saveToUndoHistory(State.getState());
     Persistence.triggerAutoSave();
     Persistence.exportStateToFile(true);
-    return true; // Sygnał do odświeżenia UI
+    return true;
 }
 
 export function handleEventTypeChange(type) {
@@ -490,4 +380,8 @@ export async function handleEventSelection(e) {
 
 export function handleExportPdf() {
     Persistence.exportToPdf();
+}
+
+export function handleExportHtml() {
+    Persistence.exportToHtml();
 }
