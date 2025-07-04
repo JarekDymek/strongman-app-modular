@@ -274,7 +274,6 @@
       <div class="panel" id="eventDetails"></div>
     </div>
     <div id="export-button-group" style="grid-template-columns: 1fr 1fr;">
-      <!-- === POPRAWKA: Usunięto przycisk PDF, zmieniono tekst i ID drugiego przycisku === -->
       <button id="exportHtmlBtn">Eksportuj Raport</button>
       <button id="resetCompetitionBtn" style="background:var(--error-color)">Resetuj</button>
     </div>
@@ -297,13 +296,10 @@
     </div>
   </main>
   
-  <!-- Ukryty kontener do generowania PDF/Obrazu -->
   <div id="pdf-export-container" style="position: absolute; left: -9999px; width: 800px; background: white; padding: 20px; color: black;"></div>
 
-  <!-- Główny skrypt aplikacji -->
   <script type="module" src="js/main.js"></script>
 
-  <!-- Skrypt rejestrujący Service Worker dla PWA -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
