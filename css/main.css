@@ -88,7 +88,7 @@ body.contrast #fsExitBtn { color: #ff0; }
 
 /* --- STYLE PODSTAWOWE --- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html { font-size: 16px; } /* Zmniejszono bazowy rozmiar dla lepszego skalowania */
+html { font-size: 16px; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   max-width: 900px;
@@ -251,6 +251,16 @@ input.resultInput:read-only { background-color: #f3f4f6; cursor: not-allowed; op
     border-style: solid; border-color: var(--primary-color) transparent transparent transparent;
 }
 .tie-info:hover .tooltip, .tie-info:focus .tooltip { visibility: visible; opacity: 1; }
+
+/* === NOWA ANIMACJA DLA POTWIERDZENIA ZAPISU === */
+@keyframes highlight-flash-input-anim {
+  0% { background-color: transparent; }
+  50% { background-color: rgba(40, 167, 69, 0.25); }
+  100% { background-color: transparent; }
+}
+.highlight-flash-input {
+  animation: highlight-flash-input-anim 1s ease-out;
+}
 
 /* --- BAZA DANYCH ZAWODNIKÓW --- */
 #competitorDbPanel .modal-box, #eventDbPanel .modal-box { max-width: 800px; }
@@ -453,7 +463,7 @@ body.dark #gemini-output textarea {
 #selectEventList .lap-item:last-child { border-bottom: none; }
 #selectEventList .lap-item:hover { background-color: #eef; }
 
-/* === NOWE STYLE DLA EKSPORTU PDF/OBRAZU === */
+/* --- STYLE DLA EKSPORTU PDF/OBRAZU --- */
 #pdf-export-container h1, 
 #pdf-export-container h2, 
 #pdf-export-container h3,
@@ -516,7 +526,6 @@ body.dark #gemini-output textarea {
   #export-button-group > button:last-of-type { grid-column: 1 / -1; }
 }
 
-/* === NOWA SEKCJA: ULEPSZONA TABELA NA SMARTFONACH === */
 @media (max-width: 600px) {
     .table-wrapper:not(.expanded) #resultsTable thead {
         display: none;
