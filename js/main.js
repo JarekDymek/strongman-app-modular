@@ -132,15 +132,10 @@ function setupEventListeners() {
         }
     });
     
-    // --- POPRAWKA: Precyzyjny zapis po każdej zmianie w polu wyniku ---
     document.getElementById('resultsTable').addEventListener('change', (e) => {
         if (e.target.classList.contains('resultInput')) {
-            // Zapisz stan do historii Undo/Redo
             History.saveToUndoHistory(State.getState());
-            // Uruchom auto-zapis do localStorage
             Persistence.triggerAutoSave();
-            
-            // Wizualne potwierdzenie zapisu
             e.target.classList.add('highlight-flash-input');
             setTimeout(() => {
                 e.target.classList.remove('highlight-flash-input');
@@ -192,7 +187,6 @@ function setupEventListeners() {
     document.getElementById('competitorDetailCloseBtn').addEventListener('click', () => document.getElementById('competitorDetailModal').classList.remove('visible'));
 
     // --- Persistence & Export ---
-    document.getElementById('exportPdfBtn').addEventListener('click', Persistence.exportToPdf);
     document.getElementById('exportHtmlBtn').addEventListener('click', Handlers.handleExportHtml);
     document.getElementById('resetCompetitionBtn').addEventListener('click', Persistence.resetApplication);
     document.getElementById('saveCheckpointBtn').addEventListener('click', Persistence.saveCheckpoint);
@@ -201,7 +195,7 @@ function setupEventListeners() {
     document.getElementById('exportStateBtn_main').addEventListener('click', () => Persistence.exportStateToFile());
     document.getElementById('importStateBtn_main').addEventListener('click', () => document.getElementById('importFile_main').click());
     document.getElementById('importFile_main').addEventListener('change', async (e) => { 
-        if (await Handlers.handleImportState(e.target.files[0])) {
+        if (await Handlers.handleImportState(e.target.files[0], refreshFullUI)) {
             refreshFullUI();
         }
         e.target.value = null; 
@@ -209,7 +203,7 @@ function setupEventListeners() {
     document.getElementById('exportStateBtn_intro').addEventListener('click', () => Persistence.exportStateToFile(true));
     document.getElementById('importStateBtn_intro').addEventListener('click', () => document.getElementById('importFile_intro').click());
     document.getElementById('importFile_intro').addEventListener('change', async (e) => { 
-        if (await Handlers.handleImportState(e.target.files[0])) {
+        if (await Handlers.handleImportState(e.target.files[0], refreshFullUI)) {
             refreshFullUI();
         }
         e.target.value = null; 
