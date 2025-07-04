@@ -33,6 +33,21 @@
     </div>
   </div>
 
+  <!-- === NOWY MODAL DO EDYCJI EKSPORTU === -->
+  <div id="editExportModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 90vw; width: 800px;">
+        <h3>Edytuj Raport Przed Eksportem</h3>
+        <div id="editable-content" contenteditable="true" style="border: 1px solid #ccc; padding: 15px; min-height: 40vh; text-align: left; background: #fff; color: #000;">
+            <!-- Treść raportu zostanie tutaj wstawiona -->
+        </div>
+        <div class="modal-buttons" style="margin-top: 20px;">
+            <button id="saveAndDownloadBtn">Zapisz i Pobierz</button>
+            <button id="cancelExportBtn" style="background: var(--error-color);">Anuluj</button>
+        </div>
+    </div>
+  </div>
+  <!-- === KONIEC NOWEGO MODALA === -->
+
   <div id="promptModal" class="modal-overlay">
       <div class="modal-box">
           <p id="promptText"></p>
@@ -106,7 +121,6 @@
         <h2>Baza Danych Konkurencji</h2>
         <form id="eventForm">
             <input type="hidden" id="eventId">
-            <!-- === POPRAWKA DOSTĘPNOŚCI === -->
             <label for="eventNameDbInput">Nazwa konkurencji</label>
             <input type="text" id="eventNameDbInput" placeholder="np. Spacer Farmera" required>
             <label for="eventTypeDbInput">Zasada punktacji</label>
@@ -114,7 +128,6 @@
                 <option value="high">Więcej = Lepiej (np. powtórzenia)</option>
                 <option value="low">Mniej = Lepiej (np. czas)</option>
             </select>
-            <!-- === KONIEC POPRAWKI === -->
             <button type="submit" id="eventFormBtn">Dodaj Konkurencję</button>
         </form>
         <div id="eventListContainer"></div>
@@ -284,7 +297,6 @@
     </div>
     <div id="export-button-group" style="grid-template-columns: repeat(3, 1fr);">
       <button id="exportPdfBtn">Eksportuj do PDF</button>
-      <!-- === POPRAWKA: Zmieniono tekst i ID przycisku === -->
       <button id="exportHtmlBtn">Eksportuj jako HTML</button>
       <button id="resetCompetitionBtn" style="background:var(--error-color)">Resetuj</button>
     </div>
