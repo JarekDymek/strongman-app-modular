@@ -5,21 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Strongman NextGen Modular</title>
   
-  <!-- Zależności zewnętrzne -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 
-  <!-- Link do zewnętrznego arkusza stylów -->
   <link rel="stylesheet" href="css/main.css">
-  
-  <!-- Link do manifestu PWA -->
   <link rel="manifest" href="manifest.json">
 
 </head>
 <body>
 
-  <!-- Pasek powiadomień i wskaźnik zapisu -->
   <div id="notification-bar"></div>
   <div id="saveIndicator">💾</div>
 
@@ -32,21 +27,6 @@
       </div>
     </div>
   </div>
-
-  <!-- === NOWY MODAL DO EDYCJI EKSPORTU === -->
-  <div id="editExportModal" class="modal-overlay">
-    <div class="modal-box" style="max-width: 90vw; width: 800px;">
-        <h3>Edytuj Raport Przed Eksportem</h3>
-        <div id="editable-content" contenteditable="true" style="border: 1px solid #ccc; padding: 15px; min-height: 40vh; text-align: left; background: #fff; color: #000;">
-            <!-- Treść raportu zostanie tutaj wstawiona -->
-        </div>
-        <div class="modal-buttons" style="margin-top: 20px;">
-            <button id="saveAndDownloadBtn">Zapisz i Pobierz</button>
-            <button id="cancelExportBtn" style="background: var(--error-color);">Anuluj</button>
-        </div>
-    </div>
-  </div>
-  <!-- === KONIEC NOWEGO MODALA === -->
 
   <div id="promptModal" class="modal-overlay">
       <div class="modal-box">
@@ -97,9 +77,7 @@
             <div><label for="weightInput">Waga (kg)</label><input type="number" id="weightInput" placeholder="np. 140"></div>
         </div>
         <label>Kategorie</label>
-        <div id="competitorCategories" class="categories-checkbox-group">
-          <!-- Kategorie będą generowane dynamicznie -->
-        </div>
+        <div id="competitorCategories" class="categories-checkbox-group"></div>
         <label for="competitorNotesInput">Osiągnięcia / Notatki</label>
         <textarea id="competitorNotesInput" placeholder="Główne osiągnięcia, rekordy..."></textarea>
         <label for="competitorPhotoInput">Zdjęcie</label>
@@ -218,7 +196,7 @@
 
   <header class="header">
     <div class="logo-container">
-      <img id="logoImg" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzJjM2U1MCIgd2lkdGg9IjE1MHB4IiBoZWlnaHQ9IjE1MHB4Ij48cGF0aCBkPSJNMjIgMTJoLTJ2LTJoLTJ2LTJoLTJ2Mkg4di0ySDZ2MkgydjJoMlYxNGgydjJoMnYyaDJ2LTJoMnYtMmgydjJoMnYtMmgydjJoMnYtMmgydi0yaC0yem0tMTAgNmMtMS4xIDAtMi0uOS0yLTJzLjktMiAyLTIgMiAuOSAyIDJzLS45IDItMiAyetTTE2IDhjMCAxLjEtLjkgMi0yIDJoLTRjLTEuMSAwLTItLjktMi0yVjZoMHYyYzAgLjU1LjQ1IDEgMSAxczEtLjQ1IDEtMVY2aDJ2MmMwIC41NS40NSAxIDEgMXMxLS40NSAxLTFWNmgwdjJ6Ii8+PC9zdmc+" alt="Logo zawodów">
+      <img id="logoImg" src="https://i.imgur.com/your_logo.png" alt="Logo zawodów">
       <div class="logo-actions">
         <button id="selectLogoBtn" class="logo-btn">Wybierz Logo</button>
       </div>
@@ -295,9 +273,9 @@
       <div id="eventList"></div>
       <div class="panel" id="eventDetails"></div>
     </div>
-    <div id="export-button-group" style="grid-template-columns: repeat(3, 1fr);">
-      <button id="exportPdfBtn">Eksportuj do PDF</button>
-      <button id="exportHtmlBtn">Eksportuj jako HTML</button>
+    <div id="export-button-group" style="grid-template-columns: 1fr 1fr;">
+      <!-- === POPRAWKA: Usunięto przycisk PDF, zmieniono tekst i ID drugiego przycisku === -->
+      <button id="exportHtmlBtn">Eksportuj Raport</button>
       <button id="resetCompetitionBtn" style="background:var(--error-color)">Resetuj</button>
     </div>
     <div class="panel security-panel">
