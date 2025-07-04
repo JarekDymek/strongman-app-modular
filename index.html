@@ -106,13 +106,15 @@
         <h2>Baza Danych Konkurencji</h2>
         <form id="eventForm">
             <input type="hidden" id="eventId">
+            <!-- === POPRAWKA DOSTĘPNOŚCI === -->
             <label for="eventNameDbInput">Nazwa konkurencji</label>
             <input type="text" id="eventNameDbInput" placeholder="np. Spacer Farmera" required>
-            <label>Zasada punktacji</label>
+            <label for="eventTypeDbInput">Zasada punktacji</label>
             <select id="eventTypeDbInput" required>
                 <option value="high">Więcej = Lepiej (np. powtórzenia)</option>
                 <option value="low">Mniej = Lepiej (np. czas)</option>
             </select>
+            <!-- === KONIEC POPRAWKI === -->
             <button type="submit" id="eventFormBtn">Dodaj Konkurencję</button>
         </form>
         <div id="eventListContainer"></div>
