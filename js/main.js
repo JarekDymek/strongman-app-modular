@@ -5,17 +5,19 @@ import * as UI from './ui.js';
 import * as State from './state.js';
 import * as History from './history.js';
 import * as Persistence from './persistence.js';
-import * as Database from './database.js';
+import * as CompetitorDB from './db.js';
+import * as EventsDB from './eventsDb.js';
 import * as Stopwatch from './stopwatch.js';
 import * as FocusMode from './focusMode.js';
 import * as Handlers from './handlers.js';
+import * as CheckpointsDB from './checkpointsDb.js';
 
 /**
  * Odświeża cały interfejs użytkownika na podstawie aktualnego stanu aplikacji.
  */
 function refreshFullUI() {
     const currentState = State.getState();
-    State.setAllDbCompetitors(currentState.allDbCompetitors ||);
+    State.setAllDbCompetitors(currentState.allDbCompetitors || []);
     
     if (currentState.competitors && currentState.competitors.length > 0) {
         UI.switchView('main');
@@ -23,7 +25,7 @@ function refreshFullUI() {
         UI.updateEventTypeButtons(currentState.currentEventType);
         UI.renderTable();
         
-        const resultInputs = document.querySelectorAll('#resultsTable.resultInput');
+        const resultInputs = document.querySelectorAll('#resultsTable .resultInput');
         resultInputs.forEach(input => {
             const competitorName = input.dataset.name;
             const event = currentState.eventHistory.find(e => e.nr === currentState.eventNumber);
@@ -35,7 +37,7 @@ function refreshFullUI() {
             }
         });
 
-        const lastEvent = currentState.eventHistory;
+        const lastEvent = currentState.eventHistory[currentState.eventHistory.length - 1];
         if (lastEvent && lastEvent.nr === currentState.eventNumber) {
             UI.updateTableWithEventData(lastEvent.results);
             UI.lockResultInputs();
@@ -45,12 +47,8 @@ function refreshFullUI() {
         UI.renderCompetitorSelectionUI(State.getAllDbCompetitors());
     }
     UI.setLogoUI(currentState.logoData);
-    UI.DOMElements.eventNameInput.value = currentState.eventName |
-
-| '';
-    UI.DOMElements.eventLocationInput.value = currentState.eventLocation |
-
-| '';
+    UI.DOMElements.eventNameInput.value = currentState.eventName || '';
+    UI.DOMElements.eventLocationInput.value = currentState.eventLocation || '';
 }
 
 /**
@@ -107,18 +105,14 @@ function setupEventListeners() {
             refreshFullUI();
         }
     });
-    document.getElementById('calculatePointsBtn').addEventListener('click', () => {
-        if(Handlers.handleCalculatePoints()) {
-            refreshFullUI();
-        }
-    });
+    document.getElementById('calculatePointsBtn').addEventListener('click', Handlers.handleCalculatePoints);
     document.getElementById('showFinalSummaryBtn').addEventListener('click', UI.renderFinalSummary);
     document.getElementById('highTypeBtn').addEventListener('click', () => Handlers.handleEventTypeChange('high'));
     document.getElementById('lowTypeBtn').addEventListener('click', () => Handlers.handleEventTypeChange('low'));
     document.getElementById('toggleTableWidthBtn').addEventListener('click', (e) => {
         const wrapper = document.querySelector('.table-wrapper');
         wrapper.classList.toggle('expanded');
-        e.target.textContent = wrapper.classList.contains('expanded')? 'Zwiń Tabelę' : 'Rozwiń Tabelę';
+        e.target.textContent = wrapper.classList.contains('expanded') ? 'Zwiń Tabelę' : 'Rozwiń Tabelę';
     });
 
     // --- Table & Main Content Clicks ---
@@ -133,16 +127,20 @@ function setupEventListeners() {
             UI.showCompetitorDetails(State.getCompetitorProfile(competitorName));
         } else if(action === 'openStopwatch' && competitorName) {
             Stopwatch.enterStopwatch(competitorName, Handlers.handleStopwatchSave);
-        } else if (target.classList.contains('resultInput') &&!target.readOnly) {
+        } else if (target.classList.contains('resultInput') && !target.readOnly) {
             FocusMode.handleEnterFocusMode(target.dataset.name);
         }
     });
     
+    // --- POPRAWKA: Precyzyjny zapis po każdej zmianie w polu wyniku ---
     document.getElementById('resultsTable').addEventListener('change', (e) => {
         if (e.target.classList.contains('resultInput')) {
+            // Zapisz stan do historii Undo/Redo
             History.saveToUndoHistory(State.getState());
+            // Uruchom auto-zapis do localStorage
             Persistence.triggerAutoSave();
             
+            // Wizualne potwierdzenie zapisu
             e.target.classList.add('highlight-flash-input');
             setTimeout(() => {
                 e.target.classList.remove('highlight-flash-input');
@@ -174,9 +172,9 @@ function setupEventListeners() {
     // --- Databases & Modals ---
     document.getElementById('manageDbBtn').addEventListener('click', Handlers.handleManageCompetitors);
     document.getElementById('closeDbPanelBtn').addEventListener('click', () => document.getElementById('competitorDbPanel').classList.remove('visible'));
-    document.getElementById('exportDbBtn').addEventListener('click', Database.exportCompetitorsToJson);
+    document.getElementById('exportDbBtn').addEventListener('click', CompetitorDB.exportCompetitorsToJson);
     document.getElementById('importDbTrigger').addEventListener('click', () => document.getElementById('importDbFile').click());
-    document.getElementById('importDbFile').addEventListener('change', (e) => { Handlers.handleDbFileImport(e.target.files); e.target.value = null; });
+    document.getElementById('importDbFile').addEventListener('change', (e) => { Handlers.handleDbFileImport(e.target.files[0]); e.target.value = null; });
     document.getElementById('competitorForm').addEventListener('submit', Handlers.handleCompetitorFormSubmit);
     document.getElementById('competitorListContainer').addEventListener('click', Handlers.handleCompetitorListAction);
     
@@ -184,9 +182,9 @@ function setupEventListeners() {
     document.getElementById('eventForm').addEventListener('submit', Handlers.handleEventFormSubmit);
     document.getElementById('eventListContainer').addEventListener('click', Handlers.handleEventListAction);
     document.getElementById('closeEventDbPanelBtn').addEventListener('click', () => document.getElementById('eventDbPanel').classList.remove('visible'));
-    document.getElementById('exportEventsDbBtn').addEventListener('click', Database.exportEventsToJson);
+    document.getElementById('exportEventsDbBtn').addEventListener('click', EventsDB.exportEventsToJson);
     document.getElementById('importEventsDbTrigger').addEventListener('click', () => document.getElementById('importEventsDbFile').click());
-    document.getElementById('importEventsDbFile').addEventListener('change', (e) => { Handlers.handleEventsDbFileImport(e.target.files); e.target.value = null; });
+    document.getElementById('importEventsDbFile').addEventListener('change', (e) => { Handlers.handleEventsDbFileImport(e.target.files[0]); e.target.value = null; });
 
     document.getElementById('selectEventFromDbBtn').addEventListener('click', Handlers.handleSelectEventFromDb);
     document.getElementById('selectEventList').addEventListener('click', Handlers.handleEventSelection);
@@ -194,6 +192,7 @@ function setupEventListeners() {
     document.getElementById('competitorDetailCloseBtn').addEventListener('click', () => document.getElementById('competitorDetailModal').classList.remove('visible'));
 
     // --- Persistence & Export ---
+    document.getElementById('exportPdfBtn').addEventListener('click', Persistence.exportToPdf);
     document.getElementById('exportHtmlBtn').addEventListener('click', Handlers.handleExportHtml);
     document.getElementById('resetCompetitionBtn').addEventListener('click', Persistence.resetApplication);
     document.getElementById('saveCheckpointBtn').addEventListener('click', Persistence.saveCheckpoint);
@@ -202,15 +201,15 @@ function setupEventListeners() {
     document.getElementById('exportStateBtn_main').addEventListener('click', () => Persistence.exportStateToFile());
     document.getElementById('importStateBtn_main').addEventListener('click', () => document.getElementById('importFile_main').click());
     document.getElementById('importFile_main').addEventListener('change', async (e) => { 
-        if (await Handlers.handleImportState(e.target.files, refreshFullUI)) {
+        if (await Handlers.handleImportState(e.target.files[0])) {
             refreshFullUI();
         }
         e.target.value = null; 
     });
     document.getElementById('exportStateBtn_intro').addEventListener('click', () => Persistence.exportStateToFile(true));
     document.getElementById('importStateBtn_intro').addEventListener('click', () => document.getElementById('importFile_intro').click());
-    document.getElementById('importStateBtn_intro').addEventListener('change', async (e) => { 
-        if (await Handlers.handleImportState(e.target.files, refreshFullUI)) {
+    document.getElementById('importFile_intro').addEventListener('change', async (e) => { 
+        if (await Handlers.handleImportState(e.target.files[0])) {
             refreshFullUI();
         }
         e.target.value = null; 
@@ -230,10 +229,12 @@ async function initializeApp() {
         UI.initUI();
         Stopwatch.initStopwatch();
         
-        await Database.initDB();
+        await CompetitorDB.initDB();
+        await EventsDB.initEventsDB();
+        await CheckpointsDB.initCheckpointsDB();
         
-        await Database.seedCompetitorsDatabaseIfNeeded();
-        await Database.seedEventsDatabaseIfNeeded();
+        await CompetitorDB.seedCompetitorsDatabaseIfNeeded();
+        await EventsDB.seedEventsDatabaseIfNeeded();
         
         setupEventListeners();
 
