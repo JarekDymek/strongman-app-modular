@@ -1,10 +1,10 @@
 // Plik: js/persistence.js
-// Cel: Zarządza logiką zapisu/odczytu, delegując operacje do modułu bazy danych.
+// Cel: Zarządza utrwalaniem stanu i eksportami.
 
-import { getState, restoreState, resetState, state } from './state.js';
-import { showNotification, showConfirmation, DOMElements } from './ui.js';
+import { getState, restoreState, resetState, state, getLogo, getEventHistory } from './state.js';
+import { showNotification, showConfirmation, DOMElements, renderFinalSummary } from './ui.js';
 import { clearHistory } from './history.js';
-import * as Database from './database.js';
+import * as Database from './database.js'; // POPRAWKA: Używamy jednego, centralnego modułu bazy danych
 
 const THEME_KEY = 'strongmanTheme_v12';
 let autoSaveTimer;
@@ -80,7 +80,7 @@ export async function importStateFromFile(file) {
                 if (await showConfirmation("Czy na pewno chcesz importować stan z pliku? Spowoduje to nadpisanie bieżącej sesji.")) {
                     restoreState(importedData);
                     clearHistory();
-                    await Database.saveCurrentState(getState()); // Zapisz zaimportowany stan
+                    await Database.saveCurrentState(getState());
                     showNotification("Stan pomyślnie zaimportowano!", "success");
                     resolve(true);
                 } else {
@@ -107,7 +107,7 @@ export async function resetApplication() {
 }
 
 function getMinimalStateForCheckpoint() {
-    return getState(); // Zapisujemy pełny stan dla maksymalnego bezpieczeństwa
+    return getState();
 }
 
 export async function saveCheckpoint() {
