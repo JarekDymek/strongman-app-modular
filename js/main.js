@@ -103,11 +103,7 @@ function setupEventListeners() {
             refreshFullUI();
         }
     });
-    document.getElementById('calculatePointsBtn').addEventListener('click', () => {
-        if(Handlers.handleCalculatePoints()) {
-            refreshFullUI();
-        }
-    });
+    document.getElementById('calculatePointsBtn').addEventListener('click', Handlers.handleCalculatePoints);
     document.getElementById('showFinalSummaryBtn').addEventListener('click', UI.renderFinalSummary);
     document.getElementById('highTypeBtn').addEventListener('click', () => Handlers.handleEventTypeChange('high'));
     document.getElementById('lowTypeBtn').addEventListener('click', () => Handlers.handleEventTypeChange('low'));
@@ -198,7 +194,7 @@ function setupEventListeners() {
     document.getElementById('exportStateBtn_main').addEventListener('click', () => Persistence.exportStateToFile());
     document.getElementById('importStateBtn_main').addEventListener('click', () => document.getElementById('importFile_main').click());
     document.getElementById('importFile_main').addEventListener('change', async (e) => { 
-        if (await Handlers.handleImportState(e.target.files[0], refreshFullUI)) {
+        if (await Handlers.handleImportState(e.target.files[0], refreshFullUICallback)) {
             refreshFullUI();
         }
         e.target.value = null; 
@@ -206,7 +202,7 @@ function setupEventListeners() {
     document.getElementById('exportStateBtn_intro').addEventListener('click', () => Persistence.exportStateToFile(true));
     document.getElementById('importStateBtn_intro').addEventListener('click', () => document.getElementById('importFile_intro').click());
     document.getElementById('importStateBtn_intro').addEventListener('change', async (e) => { 
-        if (await Handlers.handleImportState(e.target.files[0], refreshFullUI)) {
+        if (await Handlers.handleImportState(e.target.files[0], refreshFullUICallback)) {
             refreshFullUI();
         }
         e.target.value = null; 
