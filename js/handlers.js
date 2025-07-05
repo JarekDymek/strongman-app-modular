@@ -4,8 +4,7 @@
 import * as State from './state.js';
 import * as UI from './ui.js';
 import * as Competition from './competition.js';
-import * as CompetitorDB from './db.js';
-import * as EventsDB from './eventsDb.js';
+import * as Database from './database.js'; // POPRAWKA: Używamy jednego, centralnego modułu bazy danych
 import * as History from './history.js';
 import * as Persistence from './persistence.js';
 import * as Stopwatch from './stopwatch.js';
@@ -13,7 +12,7 @@ import * as GeminiAPI from './api.js';
 import * as FocusMode from './focusMode.js';
 
 export async function loadAndRenderInitialData() {
-    const competitorsFromDb = await CompetitorDB.getCompetitors();
+    const competitorsFromDb = await Database.getCompetitors();
     State.setAllDbCompetitors(competitorsFromDb);
     UI.renderCompetitorSelectionUI(competitorsFromDb);
 }
@@ -27,7 +26,7 @@ export function handleThemeChange(e) {
 export async function handleLogoUpload(e) {
     const file = e.target.files[0]; if (!file) return;
     History.saveToUndoHistory(State.getState());
-    const data = await CompetitorDB.toBase64(file);
+    const data = await Database.toBase64(file);
     State.setLogo(data); 
     UI.setLogoUI(data); 
     History.saveToUndoHistory(State.getState());
@@ -63,7 +62,7 @@ export async function handleDbFileImport(file) {
         try {
             const importedData = JSON.parse(e.target.result);
             if (await UI.showConfirmation(`Czy na pewno chcesz importować bazę danych?`)) {
-                const { added, updated } = await CompetitorDB.importCompetitorsFromJson(importedData);
+                const { added, updated } = await Database.importCompetitorsFromJson(importedData);
                 UI.showNotification(`Import zakończony! Dodano: ${added}, Zaktualizowano: ${updated}.`, "success");
                 await loadAndRenderInitialData();
             }
@@ -82,7 +81,7 @@ export async function handleEventsDbFileImport(file) {
             const importedData = JSON.parse(e.target.result);
             if (!Array.isArray(importedData)) throw new Error("Plik nie jest listą konkurencji.");
             if (await UI.showConfirmation(`Czy na pewno chcesz importować bazę konkurencji?`)) {
-                const { added, updated } = await EventsDB.importEventsFromJson(importedData);
+                const { added, updated } = await Database.importEventsFromJson(importedData);
                 UI.showNotification(`Import zakończony! Dodano: ${added}, Zakt: ${updated}.`, "success");
                 await handleManageEvents();
             }
@@ -91,13 +90,9 @@ export async function handleEventsDbFileImport(file) {
     reader.readAsText(file);
 }
 
-export async function handleImportState(file, refreshFullUICallback) {
+export async function handleImportState(file) {
     if (!file) return false;
-    const success = await Persistence.importStateFromFile(file);
-    if (success) {
-        refreshFullUICallback();
-    }
-    return success;
+    return await Persistence.importStateFromFile(file);
 }
 
 export function handleStartCompetition() {
@@ -260,7 +255,7 @@ export async function handleGenerateAnnouncement() {
 
 export async function handleManageCompetitors() {
     document.getElementById('competitorDbPanel').classList.add('visible');
-    const competitors = await CompetitorDB.getCompetitors();
+    const competitors = await Database.getCompetitors();
     UI.renderDbCompetitorList(competitors);
     const uniqueCategories = [...new Set(competitors.flatMap(c => c.categories || []))];
     UI.DOMElements.competitorCategories.innerHTML = uniqueCategories.map(cat => `
@@ -273,7 +268,7 @@ export async function handleCompetitorFormSubmit(e) {
     const id = document.getElementById('competitorId').value;
     const photoFile = document.getElementById('competitorPhotoInput').files[0];
     let photoData = null;
-    if (photoFile) photoData = await CompetitorDB.toBase64(photoFile);
+    if (photoFile) photoData = await Database.toBase64(photoFile);
 
     const competitorData = {
         name: document.getElementById('competitorNameInput').value.trim(),
@@ -287,12 +282,12 @@ export async function handleCompetitorFormSubmit(e) {
     if (id) competitorData.id = parseInt(id, 10);
     
     if (!photoData && id) {
-        const existing = await CompetitorDB.getCompetitorById(parseInt(id, 10));
+        const existing = await Database.getCompetitorById(parseInt(id, 10));
         if (existing) competitorData.photo = existing.photo;
     } else if (photoData) {
         competitorData.photo = photoData;
     }
-    await CompetitorDB.saveCompetitor(competitorData);
+    await Database.saveCompetitor(competitorData);
     UI.showNotification(id ? 'Zawodnik zaktualizowany!' : 'Zawodnik dodany!', 'success');
     e.target.reset();
     document.getElementById('competitorId').value = '';
@@ -306,11 +301,11 @@ export async function handleCompetitorListAction(e) {
     const id = parseInt(e.target.dataset.id, 10);
     if (!action || !id) return;
     if (action === 'edit-competitor') {
-        const competitor = (await CompetitorDB.getCompetitors()).find(c => c.id === id);
+        const competitor = (await Database.getCompetitors()).find(c => c.id === id);
         if(competitor) UI.populateCompetitorForm(competitor);
     } else if (action === 'delete-competitor') {
         if (await UI.showConfirmation("Czy na pewno usunąć tego zawodnika?")) {
-            await CompetitorDB.deleteCompetitor(id);
+            await Database.deleteCompetitor(id);
             UI.showNotification('Zawodnik usunięty.', 'success');
             await handleManageCompetitors();
             await loadAndRenderInitialData();
@@ -320,7 +315,7 @@ export async function handleCompetitorListAction(e) {
 
 export async function handleManageEvents() {
     document.getElementById('eventDbPanel').classList.add('visible');
-    const events = await EventsDB.getEvents();
+    const events = await Database.getEvents();
     UI.renderEventsList(events);
 }
 
@@ -332,7 +327,7 @@ export async function handleEventFormSubmit(e) {
         type: document.getElementById('eventTypeDbInput').value,
     };
     if (id) eventData.id = parseInt(id, 10);
-    await EventsDB.saveEvent(eventData);
+    await Database.saveEvent(eventData);
     UI.showNotification(id ? 'Konkurencja zaktualizowana!' : 'Konkurencja dodana!', 'success');
     e.target.reset();
     document.getElementById('eventId').value = '';
@@ -345,11 +340,11 @@ export async function handleEventListAction(e) {
     const id = parseInt(e.target.dataset.id, 10);
     if (!action || !id) return;
     if (action === 'edit-event') {
-        const event = (await EventsDB.getEvents()).find(ev => ev.id === id);
+        const event = (await Database.getEvents()).find(ev => ev.id === id);
         if (event) UI.populateEventForm(event);
     } else if (action === 'delete-event') {
         if (await UI.showConfirmation("Czy na pewno usunąć tę konkurencję?")) {
-            await EventsDB.deleteEvent(id);
+            await Database.deleteEvent(id);
             UI.showNotification('Konkurencja usunięta.', 'success');
             await handleManageEvents();
         }
@@ -357,7 +352,7 @@ export async function handleEventListAction(e) {
 }
 
 export async function handleSelectEventFromDb() {
-    const events = await EventsDB.getEvents();
+    const events = await Database.getEvents();
     if(events.length === 0) return UI.showNotification("Baza konkurencji jest pusta.", "info");
     UI.showSelectEventModal(events);
 }
@@ -365,7 +360,7 @@ export async function handleSelectEventFromDb() {
 export async function handleEventSelection(e) {
     if (e.target.dataset.action !== 'select-event') return;
     const eventId = parseInt(e.target.dataset.id, 10);
-    const events = await EventsDB.getEvents();
+    const events = await Database.getEvents();
     const selectedEvent = events.find(ev => ev.id === eventId);
     if (selectedEvent) {
         History.saveToUndoHistory(State.getState());
