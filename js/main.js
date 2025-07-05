@@ -130,7 +130,6 @@ function setupEventListeners() {
         }
     });
     
-    // --- POPRAWKA: Precyzyjny zapis po każdej zmianie w polu wyniku ---
     document.getElementById('resultsTable').addEventListener('change', (e) => {
         if (e.target.classList.contains('resultInput')) {
             History.saveToUndoHistory(State.getState());
