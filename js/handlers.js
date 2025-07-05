@@ -4,7 +4,7 @@
 import * as State from './state.js';
 import * as UI from './ui.js';
 import * as Competition from './competition.js';
-import * as Database from './database.js'; // POPRAWKA: Używamy jednego, centralnego modułu bazy danych
+import * as Database from './database.js';
 import * as History from './history.js';
 import * as Persistence from './persistence.js';
 import * as Stopwatch from './stopwatch.js';
