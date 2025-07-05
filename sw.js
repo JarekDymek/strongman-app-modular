@@ -1,7 +1,6 @@
 // Plik: sw.js (Service Worker)
 
-// --- POPRAWKA: Zmieniamy nazwę cache'u. To zmusi przeglądarkę do pobrania wszystkich plików na nowo. ---
-const CACHE_NAME = 'strongman-nextgen-cache-v2'; 
+const CACHE_NAME = 'strongman-nextgen-cache-v4'; // Zmieniona wersja, aby wymusić aktualizację
 const urlsToCache = [
   '/',
   '/index.html',
@@ -9,8 +8,7 @@ const urlsToCache = [
   '/js/main.js',
   '/js/api.js',
   '/js/competition.js',
-  '/js/db.js',
-  '/js/eventsDb.js',
+  '/js/database.js',
   '/js/focusMode.js',
   '/js/handlers.js',
   '/js/history.js',
@@ -18,7 +16,6 @@ const urlsToCache = [
   '/js/persistence.js',
   '/js/state.js',
   '/js/stopwatch.js',
-  '/js/checkpointsDb.js', // Upewnij się, że ten plik też jest na liście
   // Pamiętaj, aby dodać tutaj ścieżki do ikon, gdy je utworzysz
   // '/images/icon-192.png',
   // '/images/icon-512.png'
@@ -34,7 +31,6 @@ self.addEventListener('install', (event) => {
         return cache.addAll(urlsToCache);
       })
   );
-  // Wymuś aktywację nowego Service Workera natychmiast
   self.skipWaiting();
 });
 
@@ -53,7 +49,6 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  // Przejmij kontrolę nad wszystkimi otwartymi stronami
   return self.clients.claim();
 });
 
