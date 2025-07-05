@@ -16,7 +16,7 @@ const STORES = {
 // --- Inicjalizacja Bazy Danych ---
 export function initDB() {
     return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, 2); // Wersja 2 dla aktualizacji
+        const request = indexedDB.open(DB_NAME, 2);
 
         request.onerror = e => {
             console.error(`Błąd bazy danych ${DB_NAME}:`, e.target.error);
@@ -202,4 +202,7 @@ export async function getCheckpointsDB() {
 }
 export async function deleteCheckpointDB(key) {
     return await dbAction(STORES.CHECKPOINTS, 'readwrite', (store, k) => store.delete(k), key);
+}
+export async function clearAllCheckpointsDB() {
+    return await dbAction(STORES.CHECKPOINTS, 'readwrite', store => store.clear());
 }
