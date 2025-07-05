@@ -252,7 +252,6 @@ input.resultInput:read-only { background-color: #f3f4f6; cursor: not-allowed; op
 }
 .tie-info:hover .tooltip, .tie-info:focus .tooltip { visibility: visible; opacity: 1; }
 
-/* === NOWA ANIMACJA DLA POTWIERDZENIA ZAPISU === */
 @keyframes highlight-flash-input-anim {
   0% { background-color: transparent; }
   50% { background-color: rgba(40, 167, 69, 0.25); }
