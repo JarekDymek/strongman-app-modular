@@ -15,7 +15,7 @@ import * as Handlers from './handlers.js';
  */
 function refreshFullUI() {
     const currentState = State.getState();
-    State.setAllDbCompetitors(currentState.allDbCompetitors || []);
+    State.setAllDbCompetitors(currentState.allDbCompetitors ||);
     
     if (currentState.competitors && currentState.competitors.length > 0) {
         UI.switchView('main');
@@ -23,7 +23,7 @@ function refreshFullUI() {
         UI.updateEventTypeButtons(currentState.currentEventType);
         UI.renderTable();
         
-        const resultInputs = document.querySelectorAll('#resultsTable .resultInput');
+        const resultInputs = document.querySelectorAll('#resultsTable.resultInput');
         resultInputs.forEach(input => {
             const competitorName = input.dataset.name;
             const event = currentState.eventHistory.find(e => e.nr === currentState.eventNumber);
@@ -35,7 +35,7 @@ function refreshFullUI() {
             }
         });
 
-        const lastEvent = currentState.eventHistory[currentState.eventHistory.length - 1];
+        const lastEvent = currentState.eventHistory;
         if (lastEvent && lastEvent.nr === currentState.eventNumber) {
             UI.updateTableWithEventData(lastEvent.results);
             UI.lockResultInputs();
@@ -45,8 +45,12 @@ function refreshFullUI() {
         UI.renderCompetitorSelectionUI(State.getAllDbCompetitors());
     }
     UI.setLogoUI(currentState.logoData);
-    UI.DOMElements.eventNameInput.value = currentState.eventName || '';
-    UI.DOMElements.eventLocationInput.value = currentState.eventLocation || '';
+    UI.DOMElements.eventNameInput.value = currentState.eventName |
+
+| '';
+    UI.DOMElements.eventLocationInput.value = currentState.eventLocation |
+
+| '';
 }
 
 /**
@@ -110,7 +114,7 @@ function setupEventListeners() {
     document.getElementById('toggleTableWidthBtn').addEventListener('click', (e) => {
         const wrapper = document.querySelector('.table-wrapper');
         wrapper.classList.toggle('expanded');
-        e.target.textContent = wrapper.classList.contains('expanded') ? 'Zwiń Tabelę' : 'Rozwiń Tabelę';
+        e.target.textContent = wrapper.classList.contains('expanded')? 'Zwiń Tabelę' : 'Rozwiń Tabelę';
     });
 
     // --- Table & Main Content Clicks ---
@@ -125,7 +129,7 @@ function setupEventListeners() {
             UI.showCompetitorDetails(State.getCompetitorProfile(competitorName));
         } else if(action === 'openStopwatch' && competitorName) {
             Stopwatch.enterStopwatch(competitorName, Handlers.handleStopwatchSave);
-        } else if (target.classList.contains('resultInput') && !target.readOnly) {
+        } else if (target.classList.contains('resultInput') &&!target.readOnly) {
             FocusMode.handleEnterFocusMode(target.dataset.name);
         }
     });
@@ -168,7 +172,7 @@ function setupEventListeners() {
     document.getElementById('closeDbPanelBtn').addEventListener('click', () => document.getElementById('competitorDbPanel').classList.remove('visible'));
     document.getElementById('exportDbBtn').addEventListener('click', Database.exportCompetitorsToJson);
     document.getElementById('importDbTrigger').addEventListener('click', () => document.getElementById('importDbFile').click());
-    document.getElementById('importDbFile').addEventListener('change', (e) => { Handlers.handleDbFileImport(e.target.files[0]); e.target.value = null; });
+    document.getElementById('importDbFile').addEventListener('change', (e) => { Handlers.handleDbFileImport(e.target.files); e.target.value = null; });
     document.getElementById('competitorForm').addEventListener('submit', Handlers.handleCompetitorFormSubmit);
     document.getElementById('competitorListContainer').addEventListener('click', Handlers.handleCompetitorListAction);
     
@@ -178,7 +182,7 @@ function setupEventListeners() {
     document.getElementById('closeEventDbPanelBtn').addEventListener('click', () => document.getElementById('eventDbPanel').classList.remove('visible'));
     document.getElementById('exportEventsDbBtn').addEventListener('click', Database.exportEventsToJson);
     document.getElementById('importEventsDbTrigger').addEventListener('click', () => document.getElementById('importEventsDbFile').click());
-    document.getElementById('importEventsDbFile').addEventListener('change', (e) => { Handlers.handleEventsDbFileImport(e.target.files[0]); e.target.value = null; });
+    document.getElementById('importEventsDbFile').addEventListener('change', (e) => { Handlers.handleEventsDbFileImport(e.target.files); e.target.value = null; });
 
     document.getElementById('selectEventFromDbBtn').addEventListener('click', Handlers.handleSelectEventFromDb);
     document.getElementById('selectEventList').addEventListener('click', Handlers.handleEventSelection);
@@ -194,7 +198,7 @@ function setupEventListeners() {
     document.getElementById('exportStateBtn_main').addEventListener('click', () => Persistence.exportStateToFile());
     document.getElementById('importStateBtn_main').addEventListener('click', () => document.getElementById('importFile_main').click());
     document.getElementById('importFile_main').addEventListener('change', async (e) => { 
-        if (await Handlers.handleImportState(e.target.files[0], refreshFullUICallback)) {
+        if (await Handlers.handleImportState(e.target.files, refreshFullUICallback)) {
             refreshFullUI();
         }
         e.target.value = null; 
@@ -202,7 +206,7 @@ function setupEventListeners() {
     document.getElementById('exportStateBtn_intro').addEventListener('click', () => Persistence.exportStateToFile(true));
     document.getElementById('importStateBtn_intro').addEventListener('click', () => document.getElementById('importFile_intro').click());
     document.getElementById('importStateBtn_intro').addEventListener('change', async (e) => { 
-        if (await Handlers.handleImportState(e.target.files[0], refreshFullUICallback)) {
+        if (await Handlers.handleImportState(e.target.files, refreshFullUICallback)) {
             refreshFullUI();
         }
         e.target.value = null; 
