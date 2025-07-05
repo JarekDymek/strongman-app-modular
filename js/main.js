@@ -201,7 +201,7 @@ function setupEventListeners() {
     });
     document.getElementById('exportStateBtn_intro').addEventListener('click', () => Persistence.exportStateToFile(true));
     document.getElementById('importStateBtn_intro').addEventListener('click', () => document.getElementById('importFile_intro').click());
-    document.getElementById('importFile_intro').addEventListener('change', async (e) => { 
+    document.getElementById('importStateBtn_intro').addEventListener('change', async (e) => { 
         if (await Handlers.handleImportState(e.target.files[0], refreshFullUICallback)) {
             refreshFullUI();
         }
