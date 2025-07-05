@@ -4,7 +4,7 @@
 import { getState, restoreState, resetState, state, getLogo, getEventHistory } from './state.js';
 import { showNotification, showConfirmation, DOMElements, renderFinalSummary } from './ui.js';
 import { clearHistory } from './history.js';
-import * as Database from './database.js'; // POPRAWKA: Używamy jednego, centralnego modułu bazy danych
+import * as Database from './database.js';
 
 const THEME_KEY = 'strongmanTheme_v12';
 let autoSaveTimer;
