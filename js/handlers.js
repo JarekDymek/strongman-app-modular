@@ -90,9 +90,13 @@ export async function handleEventsDbFileImport(file) {
     reader.readAsText(file);
 }
 
-export async function handleImportState(file) {
+export async function handleImportState(file, refreshFullUICallback) {
     if (!file) return false;
-    return await Persistence.importStateFromFile(file);
+    const success = await Persistence.importStateFromFile(file);
+    if (success) {
+        refreshFullUICallback();
+    }
+    return success;
 }
 
 export function handleStartCompetition() {
