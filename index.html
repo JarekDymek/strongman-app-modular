@@ -11,18 +11,13 @@
 
   <link rel="stylesheet" href="css/main.css">
   <link rel="manifest" href="manifest.json">
-  <!-- POPRAWKA: Dodanie linku do ikony, aby uniknąć błędu 404 -->
   <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
 
 </head>
 <body>
 
-  <!-- (reszta kodu HTML bez zmian) -->
-
-  <!-- Główny skrypt aplikacji -->
   <script type="module" src="js/main.js"></script>
 
-  <!-- POPRAWKA: Poprawiony skrypt rejestrujący Service Worker -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
