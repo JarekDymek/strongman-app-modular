@@ -194,15 +194,15 @@ function setupEventListeners() {
     document.getElementById('exportStateBtn_main').addEventListener('click', () => Persistence.exportStateToFile());
     document.getElementById('importStateBtn_main').addEventListener('click', () => document.getElementById('importFile_main').click());
     document.getElementById('importFile_main').addEventListener('change', async (e) => { 
-        if (await Handlers.handleImportState(e.target.files[0], refreshFullUI)) {
+        if (await Handlers.handleImportState(e.target.files[0], refreshFullUICallback)) {
             refreshFullUI();
         }
         e.target.value = null; 
     });
     document.getElementById('exportStateBtn_intro').addEventListener('click', () => Persistence.exportStateToFile(true));
     document.getElementById('importStateBtn_intro').addEventListener('click', () => document.getElementById('importFile_intro').click());
-    document.getElementById('importStateBtn_intro').addEventListener('change', async (e) => { 
-        if (await Handlers.handleImportState(e.target.files[0], refreshFullUI)) {
+    document.getElementById('importFile_intro').addEventListener('change', async (e) => { 
+        if (await Handlers.handleImportState(e.target.files[0], refreshFullUICallback)) {
             refreshFullUI();
         }
         e.target.value = null; 
