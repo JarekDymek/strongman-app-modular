@@ -5,12 +5,10 @@ import * as UI from './ui.js';
 import * as State from './state.js';
 import * as History from './history.js';
 import * as Persistence from './persistence.js';
-import * as CompetitorDB from './database.js';
-import * as EventsDB from './database.js';
+import * as Database from './database.js';
 import * as Stopwatch from './stopwatch.js';
 import * as FocusMode from './focusMode.js';
 import * as Handlers from './handlers.js';
-import * as CheckpointsDB from './checkpointsDb.js';
 
 /**
  * Odświeża cały interfejs użytkownika na podstawie aktualnego stanu aplikacji.
@@ -169,7 +167,7 @@ function setupEventListeners() {
     // --- Databases & Modals ---
     document.getElementById('manageDbBtn').addEventListener('click', Handlers.handleManageCompetitors);
     document.getElementById('closeDbPanelBtn').addEventListener('click', () => document.getElementById('competitorDbPanel').classList.remove('visible'));
-    document.getElementById('exportDbBtn').addEventListener('click', CompetitorDB.exportCompetitorsToJson);
+    document.getElementById('exportDbBtn').addEventListener('click', Database.exportCompetitorsToJson);
     document.getElementById('importDbTrigger').addEventListener('click', () => document.getElementById('importDbFile').click());
     document.getElementById('importDbFile').addEventListener('change', (e) => { Handlers.handleDbFileImport(e.target.files[0]); e.target.value = null; });
     document.getElementById('competitorForm').addEventListener('submit', Handlers.handleCompetitorFormSubmit);
@@ -179,7 +177,7 @@ function setupEventListeners() {
     document.getElementById('eventForm').addEventListener('submit', Handlers.handleEventFormSubmit);
     document.getElementById('eventListContainer').addEventListener('click', Handlers.handleEventListAction);
     document.getElementById('closeEventDbPanelBtn').addEventListener('click', () => document.getElementById('eventDbPanel').classList.remove('visible'));
-    document.getElementById('exportEventsDbBtn').addEventListener('click', EventsDB.exportEventsToJson);
+    document.getElementById('exportEventsDbBtn').addEventListener('click', Database.exportEventsToJson);
     document.getElementById('importEventsDbTrigger').addEventListener('click', () => document.getElementById('importEventsDbFile').click());
     document.getElementById('importEventsDbFile').addEventListener('change', (e) => { Handlers.handleEventsDbFileImport(e.target.files[0]); e.target.value = null; });
 
