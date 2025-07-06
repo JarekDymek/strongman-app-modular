@@ -2,6 +2,7 @@
 // Cel: Zawiera wszystkie funkcje obsługi zdarzeń (handle...).
 
 import * as State from './state.js';
+// ZAKTUALIZOWANY IMPORT - pobieramy nowe funkcje promptera
 import * as UI from './ui.js';
 import * as Competition from './competition.js';
 import * as CompetitorDB from './db.js';
@@ -350,21 +351,38 @@ export async function handleGenerateEventName() {
     }
 }
 
+// ========================================================================
+// ZAKTUALIZOWANA FUNKCJA OBSŁUGI ZAPOWIEDZI SPIKERA
+// ========================================================================
 export async function handleGenerateAnnouncement() {
     if (!navigator.onLine) {
         return UI.showNotification("Funkcje AI wymagają połączenia z internetem.", "error");
     }
     const competitors = State.getActiveCompetitors();
-    if (competitors.length === 0) return UI.showNotification("Rozpocznij zawody, aby wygenerować zapowiedź.", "error");
+    if (competitors.length === 0) {
+        return UI.showNotification("Rozpocznij zawody, aby wygenerować zapowiedź.", "error");
+    }
     const prompt = `Jesteś spikerem na zawodach strongman. Stwórz krótką, ekscytującą zapowiedź nadchodzącej konkurencji: "${document.getElementById('eventTitle').textContent}". Wymień kilku startujących zawodników, np.: ${competitors.slice(0,3).join(', ')}. Użyj dynamicznego języka.`;
-    const geminiModal = document.getElementById('geminiModal');
-    const loading = document.getElementById('geminiLoading');
-    const output = document.getElementById('geminiOutput');
-    geminiModal.classList.add('visible'); loading.style.display = 'block'; output.innerHTML = '';
-    const announcement = await GeminiAPI.callGemini(prompt);
-    loading.style.display = 'none';
-    if (announcement) {
-        output.innerHTML = `<textarea readonly>${announcement}</textarea>`;
+    
+    // 1. Pokaż prompter z informacją o generowaniu
+    UI.showFullscreenPrompter('Generowanie...');
+
+    try {
+        // 2. W tle pobierz właściwą zapowiedź
+        const announcement = await GeminiAPI.callGemini(prompt);
+        
+        // 3. Zaktualizuj tekst w już otwartym prompterze
+        if (announcement) {
+            UI.showFullscreenPrompter(announcement);
+        } else {
+            throw new Error("Otrzymano pustą odpowiedź od AI.");
+        }
+
+    } catch (error) {
+        // W razie błędu, zamknij prompter i pokaż powiadomienie o błędzie
+        UI.hideFullscreenPrompter();
+        UI.showNotification("Błąd generowania zapowiedzi.", "error");
+        console.error("Błąd podczas generowania zapowiedzi:", error);
     }
 }
 
@@ -491,3 +509,4 @@ export async function handleEventSelection(e) {
 export function handleExportPdf() {
     Persistence.exportToPdf();
 }
+
