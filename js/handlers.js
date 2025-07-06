@@ -2,7 +2,6 @@
 // Cel: Zawiera wszystkie funkcje obsługi zdarzeń (handle...).
 
 import * as State from './state.js';
-// ZAKTUALIZOWANY IMPORT - pobieramy nowe funkcje promptera
 import * as UI from './ui.js';
 import * as Competition from './competition.js';
 import * as CompetitorDB from './db.js';
