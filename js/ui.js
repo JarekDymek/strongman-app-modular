@@ -398,3 +398,72 @@ export function showSelectEventModal(events) {
     `).join('');
     DOMElements.selectEventModal.classList.add('visible');
 }
+
+// ========================================================================
+// NOWA LOGIKA PEŁNOEKRANOWEGO PROMPTERA (DODANA NA KOŃCU PLIKU)
+// ========================================================================
+
+let prompterElements; // Zmienna do przechowywania elementów DOM promptera
+
+/**
+ * Inicjalizuje prompter - pobiera elementy z DOM i ustawia nasłuchiwanie.
+ */
+export const initFullscreenPrompter = () => {
+    prompterElements = {
+        container: document.getElementById('fullscreen-prompter'),
+        textElement: document.getElementById('prompter-text'),
+        closeButtonTop: document.getElementById('prompter-close-btn-top'),
+        closeButtonBottom: document.getElementById('prompter-close-btn-bottom'),
+    };
+
+    // Sprawdzenie, czy elementy istnieją, zanim dodamy listenery
+    if (!prompterElements.container) {
+        console.error("Błąd krytyczny: Element #fullscreen-prompter nie został znaleziony w pliku index.html.");
+        return;
+    }
+
+    // Nasłuchiwanie na zdarzenia zamykające
+    prompterElements.closeButtonTop.addEventListener('click', hideFullscreenPrompter);
+    prompterElements.closeButtonBottom.addEventListener('click', hideFullscreenPrompter);
+    
+    // Zamykanie po kliknięciu w tło
+    prompterElements.container.addEventListener('click', (event) => {
+        if (event.target === prompterElements.container) {
+            hideFullscreenPrompter();
+        }
+    });
+
+    // Zamykanie klawiszem Escape
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && prompterElements.container.classList.contains('opacity-100')) {
+            hideFullscreenPrompter();
+        }
+    });
+
+    console.log("Pełnoekranowy prompter został zainicjowany.");
+};
+
+/**
+ * Pokazuje prompter na pełnym ekranie z podanym tekstem.
+ */
+export const showFullscreenPrompter = (text) => {
+    if (!prompterElements) {
+        console.error("Prompter nie został zainicjowany. Wywołaj initFullscreenPrompter() przy starcie aplikacji.");
+        return;
+    }
+    prompterElements.textElement.textContent = text;
+    prompterElements.container.classList.remove('opacity-0', 'pointer-events-none');
+    prompterElements.container.classList.add('opacity-100');
+    document.body.style.overflow = 'hidden'; // Blokuje przewijanie tła
+};
+
+/**
+ * Ukrywa prompter.
+ */
+export const hideFullscreenPrompter = () => {
+    if (!prompterElements) return;
+    prompterElements.container.classList.add('opacity-0', 'pointer-events-none');
+    prompterElements.container.classList.remove('opacity-100');
+    document.body.style.overflow = 'auto'; // Przywraca przewijanie tła
+};
+
