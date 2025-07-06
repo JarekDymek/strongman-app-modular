@@ -227,6 +227,8 @@ function setupEventListeners() {
 async function initializeApp() {
     try {
         UI.initUI();
+        // DODANA LINIA - Inicjalizujemy nasz nowy prompter, aby był gotowy do użycia
+        UI.initFullscreenPrompter();
         Stopwatch.initStopwatch();
         
         await CompetitorDB.initDB();
@@ -260,3 +262,4 @@ async function initializeApp() {
 
 // Uruchomienie aplikacji po załadowaniu drzewa DOM
 document.addEventListener('DOMContentLoaded', initializeApp);
+
