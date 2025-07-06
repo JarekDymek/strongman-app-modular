@@ -337,6 +337,31 @@
       });
     }
   </script>
+    <!-- ======================================================= -->
+    <!--      PEŁNOEKRANOWY PROMPTER DLA SPIKERA (HTML)      -->
+    <!-- ======================================================= -->
+    <div id="fullscreen-prompter" class="fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <!-- Czarne tło -->
+        <div class="absolute inset-0 bg-gray-900 bg-opacity-95"></div>
+        
+        <!-- Kontener na treść -->
+        <div class="relative w-full max-w-5xl text-center">
+            <!-- Przycisk zamykania (X) w rogu -->
+            <button id="prompter-close-btn-top" class="absolute -top-4 -right-2 sm:top-0 sm:right-0 text-white text-6xl font-light hover:text-gray-400 transition" aria-label="Zamknij prompter">
+              &times;
+            </button>
+    
+            <!-- Główny tekst podpowiedzi -->
+            <p id="prompter-text" class="text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight select-none">
+              <!-- Tekst zostanie wstawiony przez JavaScript -->
+            </p>
+    
+            <!-- Przycisk "Zamknij" na dole (stylizowany jak w Twojej apce) -->
+            <button id="prompter-close-btn-bottom" class="mt-12 bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition-all">
+               Zamknij
+            </button>
+        </div>
+    </div>
 
 </body>
 </html>
